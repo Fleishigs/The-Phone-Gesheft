@@ -1,4 +1,4 @@
-// Admin dashboard functionality
+// Admin dashboard functionality with image upload
 
 let currentUser = null;
 let allProducts = [];
@@ -189,6 +189,28 @@ document.getElementById('add-product-btn')?.addEventListener('click', () => {
     showProductModal();
 });
 
+// IMAGE UPLOAD FUNCTION
+async function uploadImage(file) {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+    const filePath = `product-images/${fileName}`;
+
+    const { data, error } = await supabase.storage
+        .from('product-images')
+        .upload(filePath, file);
+
+    if (error) {
+        console.error('Upload error:', error);
+        throw error;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(filePath);
+
+    return publicUrl;
+}
+
 function showProductModal(product = null) {
     const modal = document.createElement('div');
     modal.className = 'modal active';
@@ -221,8 +243,10 @@ function showProductModal(product = null) {
                 </div>
                 
                 <div class="form-group">
-                    <label>Image URL</label>
-                    <input type="url" id="modal-image" value="${product?.image_url || ''}" placeholder="https://...">
+                    <label>Upload Product Image</label>
+                    <input type="file" id="modal-image-file" accept="image/*">
+                    ${product?.image_url ? `<div style="margin-top: 0.5rem;"><small>Current image: <a href="${product.image_url}" target="_blank">View</a></small></div>` : ''}
+                    <div id="upload-progress" style="display: none; margin-top: 0.5rem; color: #3B82F6;">Uploading...</div>
                 </div>
                 
                 <div class="form-group">
@@ -246,12 +270,27 @@ function showProductModal(product = null) {
     document.getElementById('product-modal-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         
+        const imageFile = document.getElementById('modal-image-file').files[0];
+        let imageUrl = product?.image_url || '';
+        
+        // Upload new image if selected
+        if (imageFile) {
+            try {
+                document.getElementById('upload-progress').style.display = 'block';
+                imageUrl = await uploadImage(imageFile);
+            } catch (error) {
+                alert('Error uploading image: ' + error.message);
+                document.getElementById('upload-progress').style.display = 'none';
+                return;
+            }
+        }
+        
         const productData = {
             name: document.getElementById('modal-name').value,
             price: parseFloat(document.getElementById('modal-price').value),
             stock: parseInt(document.getElementById('modal-stock').value),
             description: document.getElementById('modal-description').value,
-            image_url: document.getElementById('modal-image').value,
+            image_url: imageUrl,
             status: document.getElementById('modal-status').value
         };
         
@@ -511,7 +550,7 @@ window.editTag = function(id) {
 
 async function updateTag(id, name) {
     try {
-        const { error } = await supabase.from('tags').update({ name }).eq('id', id);
+        const { error} = await supabase.from('tags').update({ name }).eq('id', id);
         if (error) throw error;
         alert('Tag updated!');
         await loadTags();
