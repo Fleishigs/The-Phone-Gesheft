@@ -1,10 +1,11 @@
-// Admin dashboard functionality with image upload
+// Admin dashboard functionality - COMPLETE VERSION with Featured Products & Multi-Image Upload
 
 let currentUser = null;
 let allProducts = [];
 let allOrders = [];
 let allCategories = [];
 let allTags = [];
+let productImages = []; // Array to store multiple images
 
 // Login
 document.getElementById('login-form')?.addEventListener('submit', async (e) => {
@@ -62,7 +63,6 @@ document.querySelectorAll('.menu-link').forEach(link => {
         document.querySelectorAll('.admin-section').forEach(s => s.style.display = 'none');
         document.getElementById(section + '-section').style.display = 'block';
         
-        // Load fresh data
         if (section === 'dashboard') {
             await loadDashboard();
         } else if (section === 'products') {
@@ -73,6 +73,8 @@ document.querySelectorAll('.menu-link').forEach(link => {
             await loadCategories();
         } else if (section === 'tags') {
             await loadTags();
+        } else if (section === 'featured') {
+            await loadFeaturedManager();
         }
     });
 });
@@ -170,13 +172,18 @@ function displayProducts() {
     }
     
     grid.innerHTML = allProducts.map(product => {
-        const imageUrl = product.image_url || (product.images && product.images[0]) || '';
+        const mainImage = product.images && product.images.length > 0 ? product.images[0] : (product.image_url || '');
+        const imageCount = product.images ? product.images.length : (product.image_url ? 1 : 0);
+        
         return `
         <div class="product-admin-card">
-            <img src="${imageUrl}" alt="${product.name}">
+            <div style="position: relative;">
+                <img src="${mainImage}" alt="${product.name}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; background: #f3f4f6;">
+                ${imageCount > 1 ? `<div style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">+${imageCount - 1} more</div>` : ''}
+            </div>
             <h3>${product.name}</h3>
             <div class="price">$${parseFloat(product.price).toFixed(2)}</div>
-            <div class="stock">${product.stock} in stock</div>
+            <div class="stock">${product.track_inventory === false ? 'Unlimited' : product.stock + ' in stock'}</div>
             <div class="product-admin-actions">
                 <button class="btn-edit" onclick="editProduct(${product.id})">Edit</button>
                 <button class="btn-delete" onclick="deleteProduct(${product.id}, '${product.name.replace(/'/g, "\\'")}')">Delete</button>
@@ -212,10 +219,13 @@ async function uploadImage(file) {
 }
 
 function showProductModal(product = null) {
+    // Initialize product images array
+    productImages = product?.images ? [...product.images] : [];
+    
     const modal = document.createElement('div');
     modal.className = 'modal active';
     modal.innerHTML = `
-        <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-content" style="max-width: 700px;">
             <div class="modal-header">
                 <h2>${product ? 'Edit Product' : 'Add Product'}</h2>
                 <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
@@ -232,9 +242,16 @@ function showProductModal(product = null) {
                         <input type="number" id="modal-price" step="0.01" value="${product?.price || ''}" required>
                     </div>
                     <div class="form-group">
-                        <label>Stock</label>
-                        <input type="number" id="modal-stock" value="${product?.stock || 0}" required>
+                        <label>
+                            <input type="checkbox" id="modal-track-inventory" ${product?.track_inventory !== false ? 'checked' : ''} style="width: auto; margin-right: 0.5rem;">
+                            Track Inventory
+                        </label>
                     </div>
+                </div>
+                
+                <div class="form-group" id="stock-field" style="${product?.track_inventory === false ? 'display: none;' : ''}">
+                    <label>Stock</label>
+                    <input type="number" id="modal-stock" value="${product?.stock || 0}">
                 </div>
                 
                 <div class="form-group">
@@ -243,10 +260,25 @@ function showProductModal(product = null) {
                 </div>
                 
                 <div class="form-group">
-                    <label>Upload Product Image</label>
-                    <input type="file" id="modal-image-file" accept="image/*">
-                    ${product?.image_url ? `<div style="margin-top: 0.5rem;"><small>Current image: <a href="${product.image_url}" target="_blank">View</a></small></div>` : ''}
-                    <div id="upload-progress" style="display: none; margin-top: 0.5rem; color: #3B82F6;">Uploading...</div>
+                    <label>Product Images</label>
+                    <div style="margin-bottom: 1rem;">
+                        <label for="modal-images" style="display: inline-block; padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%); color: white; border-radius: 8px; cursor: pointer; font-weight: 600; text-align: center; transition: transform 0.2s;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            Choose Images
+                        </label>
+                        <input type="file" id="modal-images" accept="image/*" multiple style="display: none;">
+                    </div>
+                    <div id="upload-progress" style="display: none; color: #3B82F6; font-weight: 600; margin-bottom: 1rem;">
+                        <svg style="display: inline-block; width: 20px; height: 20px; animation: spin 1s linear infinite;" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" stroke="#3B82F6" stroke-width="4" fill="none" stroke-dasharray="31.4 31.4" transform="rotate(-90 12 12)"/>
+                        </svg>
+                        Uploading images...
+                    </div>
+                    <div id="images-preview" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1rem;"></div>
                 </div>
                 
                 <div class="form-group">
@@ -263,36 +295,66 @@ function showProductModal(product = null) {
                 </div>
             </form>
         </div>
+        <style>
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+        </style>
     `;
     
     document.body.appendChild(modal);
     
+    // Display existing images
+    updateImagesPreview();
+    
+    // Track inventory checkbox handler
+    document.getElementById('modal-track-inventory').addEventListener('change', (e) => {
+        document.getElementById('stock-field').style.display = e.target.checked ? 'block' : 'none';
+    });
+    
+    // File input handler
+    document.getElementById('modal-images').addEventListener('change', async (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+        
+        const progressDiv = document.getElementById('upload-progress');
+        progressDiv.style.display = 'block';
+        
+        try {
+            for (const file of files) {
+                const url = await uploadImage(file);
+                productImages.push(url);
+            }
+            updateImagesPreview();
+            progressDiv.style.display = 'none';
+            e.target.value = ''; // Reset file input
+        } catch (error) {
+            alert('Error uploading images: ' + error.message);
+            progressDiv.style.display = 'none';
+        }
+    });
+    
+    // Form submit
     document.getElementById('product-modal-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const imageFile = document.getElementById('modal-image-file').files[0];
-        let imageUrl = product?.image_url || '';
-        
-        // Upload new image if selected
-        if (imageFile) {
-            try {
-                document.getElementById('upload-progress').style.display = 'block';
-                imageUrl = await uploadImage(imageFile);
-            } catch (error) {
-                alert('Error uploading image: ' + error.message);
-                document.getElementById('upload-progress').style.display = 'none';
-                return;
-            }
-        }
+        const trackInventory = document.getElementById('modal-track-inventory').checked;
         
         const productData = {
             name: document.getElementById('modal-name').value,
             price: parseFloat(document.getElementById('modal-price').value),
-            stock: parseInt(document.getElementById('modal-stock').value),
+            stock: trackInventory ? parseInt(document.getElementById('modal-stock').value) : 999999,
+            track_inventory: trackInventory,
             description: document.getElementById('modal-description').value,
-            image_url: imageUrl,
+            images: productImages,
+            image_url: productImages.length > 0 ? productImages[0] : null,
             status: document.getElementById('modal-status').value
         };
+        
+        if (productImages.length === 0) {
+            alert('Please upload at least one image!');
+            return;
+        }
         
         try {
             if (product) {
@@ -312,6 +374,40 @@ function showProductModal(product = null) {
         }
     });
 }
+
+function updateImagesPreview() {
+    const previewDiv = document.getElementById('images-preview');
+    if (!previewDiv) return;
+    
+    if (productImages.length === 0) {
+        previewDiv.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #9CA3AF; padding: 2rem;">No images yet. Click "Choose Images" to upload.</p>';
+        return;
+    }
+    
+    previewDiv.innerHTML = productImages.map((url, index) => `
+        <div style="position: relative; border: ${index === 0 ? '3px solid #3B82F6' : '2px solid #E5E7EB'}; border-radius: 8px; padding: 0.5rem; background: white;">
+            <img src="${url}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-bottom: 0.5rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
+                <label style="font-size: 0.75rem; display: flex; align-items: center; cursor: pointer; flex: 1;">
+                    <input type="radio" name="primary-image" ${index === 0 ? 'checked' : ''} onchange="setPrimaryImage(${index})" style="margin-right: 0.25rem;">
+                    <span style="color: ${index === 0 ? '#3B82F6' : '#6B7280'}; font-weight: ${index === 0 ? '600' : '400'};">${index === 0 ? 'Primary' : 'Set Primary'}</span>
+                </label>
+                <button type="button" onclick="removeImage(${index})" style="background: #EF4444; color: white; border: none; border-radius: 4px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; line-height: 1;">&times;</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+window.removeImage = function(index) {
+    productImages.splice(index, 1);
+    updateImagesPreview();
+};
+
+window.setPrimaryImage = function(index) {
+    const [primaryImage] = productImages.splice(index, 1);
+    productImages.unshift(primaryImage);
+    updateImagesPreview();
+};
 
 window.editProduct = async function(productId) {
     const product = allProducts.find(p => p.id === productId);
@@ -568,6 +664,128 @@ window.deleteTag = async function(id, name) {
         alert('Tag deleted!');
         await loadTags();
     } catch (error) {
+        alert('Error: ' + error.message);
+    }
+};
+
+// FEATURED PRODUCTS MANAGER
+async function loadFeaturedManager() {
+    try {
+        const { data: allProducts } = await supabase
+            .from('products')
+            .select('*')
+            .eq('status', 'active')
+            .order('created_at', { ascending: false });
+        
+        const featured = (allProducts || []).filter(p => p.is_featured).sort((a, b) => (a.featured_order || 0) - (b.featured_order || 0));
+        const available = (allProducts || []).filter(p => !p.is_featured);
+        
+        const container = document.getElementById('featured-products-manager');
+        container.innerHTML = `
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div>
+                    <h3 style="margin-bottom: 1rem; color: #111827;">Featured Products (${featured.length}/3)</h3>
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        ${featured.length === 0 ? '<p style="color: #6B7280; padding: 2rem; background: white; border-radius: 8px; text-align: center;">No featured products. Select from available products →</p>' : ''}
+                        ${featured.map((p) => `
+                            <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 1rem;">
+                                <img src="${p.images?.[0] || p.image_url || ''}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; background: #f3f4f6;">
+                                <div style="flex: 1;">
+                                    <strong style="display: block; margin-bottom: 0.25rem;">${p.name}</strong>
+                                    <div style="color: #3B82F6; font-size: 1.125rem; font-weight: 600;">$${p.price.toFixed(2)}</div>
+                                    <div style="color: #6B7280; font-size: 0.875rem; margin-top: 0.25rem;">Position: ${p.featured_order || 'N/A'}</div>
+                                </div>
+                                <button class="btn-delete" onclick="removeFeatured(${p.id})" style="padding: 0.5rem 1rem;">Remove</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 style="margin-bottom: 1rem; color: #111827;">Available Products</h3>
+                    <div style="display: flex; flex-direction: column; gap: 1rem; max-height: 600px; overflow-y: auto;">
+                        ${available.length === 0 ? '<p style="color: #6B7280; padding: 2rem; background: white; border-radius: 8px; text-align: center;">All products are featured!</p>' : ''}
+                        ${available.map(p => `
+                            <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 1rem;">
+                                <img src="${p.images?.[0] || p.image_url || ''}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; background: #f3f4f6;">
+                                <div style="flex: 1;">
+                                    <strong style="display: block; margin-bottom: 0.25rem;">${p.name}</strong>
+                                    <div style="color: #3B82F6; font-size: 1.125rem; font-weight: 600;">$${p.price.toFixed(2)}</div>
+                                </div>
+                                <button class="btn-edit" onclick="addFeatured(${p.id})" ${featured.length >= 3 ? 'disabled style="opacity: 0.5; cursor: not-allowed; padding: 0.5rem 1rem;"' : 'style="padding: 0.5rem 1rem;"'}>
+                                    ${featured.length >= 3 ? 'Max (3)' : 'Add'}
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+        
+    } catch (error) {
+        console.error('Error loading featured:', error);
+        alert('Error loading featured products: ' + error.message);
+    }
+}
+
+window.addFeatured = async function(productId) {
+    try {
+        const { data: current } = await supabase
+            .from('products')
+            .select('id')
+            .eq('is_featured', true);
+        
+        if (current && current.length >= 3) {
+            alert('Maximum 3 featured products allowed! Remove one first.');
+            return;
+        }
+        
+        const nextOrder = current ? current.length + 1 : 1;
+        
+        const { error } = await supabase
+            .from('products')
+            .update({ is_featured: true, featured_order: nextOrder })
+            .eq('id', productId);
+        
+        if (error) throw error;
+        
+        await loadFeaturedManager();
+        
+    } catch (error) {
+        console.error('Error adding featured:', error);
+        alert('Error: ' + error.message);
+    }
+};
+
+window.removeFeatured = async function(productId) {
+    try {
+        const { error } = await supabase
+            .from('products')
+            .update({ is_featured: false, featured_order: null })
+            .eq('id', productId);
+        
+        if (error) throw error;
+        
+        // Reorder remaining
+        const { data: remaining } = await supabase
+            .from('products')
+            .select('*')
+            .eq('is_featured', true)
+            .order('featured_order', { ascending: true });
+        
+        if (remaining) {
+            for (let i = 0; i < remaining.length; i++) {
+                await supabase
+                    .from('products')
+                    .update({ featured_order: i + 1 })
+                    .eq('id', remaining[i].id);
+            }
+        }
+        
+        await loadFeaturedManager();
+        
+    } catch (error) {
+        console.error('Error removing:', error);
         alert('Error: ' + error.message);
     }
 };
