@@ -1,9 +1,11 @@
 {
-  "name": "kosherlynk",
+  "name": "phone-gesheft",
   "version": "1.0.0",
-  "description": "Browser-free phones e-commerce site",
   "dependencies": {
-    "stripe": "^14.0.0",
-    "@supabase/supabase-js": "^2.39.0"
+    "@supabase/supabase-js": "^2.39.0",
+    "stripe": "^14.0.0"
+  },
+  "devDependencies": {
+    "@netlify/plugin-scheduled-functions": "^1.0.0"
   }
 }

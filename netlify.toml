@@ -1,9 +1,2 @@
 [build]
   functions = "netlify/functions"
-
-# Keep database awake - runs every 10 minutes
-[[plugins]]
-  package = "@netlify/plugin-scheduled-functions"
-
-[functions."keep-alive"]
-  schedule = "*/10 * * * *"
