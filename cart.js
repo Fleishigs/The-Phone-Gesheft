@@ -1,4 +1,4 @@
-// Shopping cart with VARIANTS support
+// Shopping cart - FIXED VERSION with variant support
 let cart = [];
 
 function loadCart() {
@@ -11,41 +11,55 @@ function displayCart() {
     const container = document.getElementById('cart-items');
     const totalEl = document.getElementById('cart-total');
 
+    if (!container || !totalEl) {
+        console.error('Cart elements not found');
+        return;
+    }
+
     if (cart.length === 0) {
         container.innerHTML = `
-            <div style="text-align: center; padding: 3rem;">
+            <div style="text-align: center; padding: 4rem 0;">
                 <p style="color: #6B7280; font-size: 1.125rem; margin-bottom: 1rem;">Your cart is empty</p>
                 <a href="products.html" class="btn btn-primary">Continue Shopping</a>
             </div>
         `;
         totalEl.textContent = '$0.00';
-        document.getElementById('checkout-btn').disabled = true;
+        const checkoutBtn = document.getElementById('checkout-btn');
+        if (checkoutBtn) checkoutBtn.disabled = true;
         return;
     }
 
     container.innerHTML = cart.map((item, index) => `
         <div class="cart-item">
-            <img src="${item.image}" alt="${item.name}" class="cart-item-image">
+            <div class="cart-item-image">
+                <img src="${item.image}" alt="${item.name}">
+            </div>
             <div class="cart-item-details">
                 <h3>${item.name}</h3>
-                ${item.variant ? `<p style="color: #6B7280; font-size: 0.875rem; margin-top: 0.25rem;">Variant: ${item.variant}</p>` : ''}
+                ${item.variant ? `<p style="color: #6B7280; font-size: 0.875rem; margin-top: 0.25rem;">Option: ${item.variant}</p>` : ''}
                 <div class="cart-item-price">$${item.price.toFixed(2)}</div>
             </div>
             <div class="cart-item-quantity">
-                <button onclick="updateQuantity(${index}, -1)" class="quantity-btn">-</button>
+                <button onclick="updateQuantity(${index}, -1)" class="qty-btn">-</button>
                 <span>${item.quantity}</span>
-                <button onclick="updateQuantity(${index}, 1)" class="quantity-btn">+</button>
+                <button onclick="updateQuantity(${index}, 1)" class="qty-btn">+</button>
             </div>
-            <div class="cart-item-subtotal">
+            <div class="cart-item-total">
                 $${(item.price * item.quantity).toFixed(2)}
             </div>
-            <button onclick="removeFromCart(${index})" class="remove-btn">×</button>
+            <button onclick="removeFromCart(${index})" class="cart-item-remove">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
         </div>
     `).join('');
 
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     totalEl.textContent = `$${total.toFixed(2)}`;
-    document.getElementById('checkout-btn').disabled = false;
+    
+    const checkoutBtn = document.getElementById('checkout-btn');
+    if (checkoutBtn) checkoutBtn.disabled = false;
 }
 
 function updateQuantity(index, change) {
@@ -120,7 +134,10 @@ async function proceedToCheckout() {
     }
 }
 
-document.getElementById('checkout-btn')?.addEventListener('click', proceedToCheckout);
+const checkoutBtn = document.getElementById('checkout-btn');
+if (checkoutBtn) {
+    checkoutBtn.addEventListener('click', proceedToCheckout);
+}
 
 // Initialize
 loadCart();

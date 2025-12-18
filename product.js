@@ -1,11 +1,11 @@
-// Single product page with VARIANTS support
+// Single product page - FIXED VERSION
 const productId = new URLSearchParams(window.location.search).get('id');
 let currentProduct = null;
 let selectedVariant = null;
 
 async function loadProduct() {
     if (!productId) {
-        document.getElementById('product-content').innerHTML = '<p>Product not found</p>';
+        document.getElementById('product-content').innerHTML = '<div class="container"><p>Product not found</p></div>';
         return;
     }
 
@@ -18,7 +18,7 @@ async function loadProduct() {
 
         if (error) throw error;
         if (!product) {
-            document.getElementById('product-content').innerHTML = '<p>Product not found</p>';
+            document.getElementById('product-content').innerHTML = '<div class="container"><p>Product not found</p></div>';
             return;
         }
 
@@ -32,7 +32,7 @@ async function loadProduct() {
         displayProduct(product);
     } catch (error) {
         console.error('Error loading product:', error);
-        document.getElementById('product-content').innerHTML = '<p>Error loading product</p>';
+        document.getElementById('product-content').innerHTML = '<div class="container"><p>Error loading product</p></div>';
     }
 }
 
@@ -42,63 +42,94 @@ function displayProduct(product) {
     
     // Determine display price
     let priceDisplay = '';
+    let currentPrice = product.price;
+    
     if (product.variants && product.variants.length > 0) {
         const prices = product.variants.map(v => v.price);
         const minPrice = Math.min(...prices);
         const maxPrice = Math.max(...prices);
         if (minPrice === maxPrice) {
             priceDisplay = `$${minPrice.toFixed(2)}`;
+            currentPrice = minPrice;
         } else {
             priceDisplay = `$${minPrice.toFixed(2)} - $${maxPrice.toFixed(2)}`;
+            currentPrice = selectedVariant.price;
         }
     } else {
         priceDisplay = `$${product.price.toFixed(2)}`;
     }
     
+    // Check stock
+    let inStock = true;
+    let stockDisplay = '';
+    
+    if (product.variants && product.variants.length > 0) {
+        if (selectedVariant.track_inventory !== false) {
+            inStock = selectedVariant.stock > 0;
+            stockDisplay = inStock ? `✓ In Stock (${selectedVariant.stock} available)` : '✗ Out of Stock';
+        } else {
+            stockDisplay = '✓ In Stock';
+        }
+    } else {
+        if (product.track_inventory !== false) {
+            inStock = product.stock > 0;
+            stockDisplay = inStock ? `✓ In Stock (${product.stock} available)` : '✗ Out of Stock';
+        } else {
+            stockDisplay = '✓ In Stock';
+        }
+    }
+    
     container.innerHTML = `
-        <div class="product-detail">
-            <div class="product-gallery">
-                <div class="main-image">
-                    <img id="main-product-image" src="${images[0]}" alt="${product.name}">
-                </div>
-                ${images.length > 1 ? `
-                <div class="thumbnail-gallery">
-                    ${images.map((img, i) => `
-                        <img src="${img}" 
-                             alt="${product.name}" 
-                             class="thumbnail ${i === 0 ? 'active' : ''}"
-                             onclick="changeMainImage('${img}', this)">
-                    `).join('')}
-                </div>
-                ` : ''}
-            </div>
+        <div class="container">
+            <a href="products.html" class="back-link">← Back to Products</a>
             
-            <div class="product-info">
-                <h1>${product.name}</h1>
-                <div class="product-price" id="product-price">${priceDisplay}</div>
-                <div class="product-description">${product.description}</div>
-                
-                ${product.variants && product.variants.length > 0 ? `
-                <div class="variant-selector">
-                    <label for="variant-select">Choose Option:</label>
-                    <select id="variant-select" onchange="updateSelectedVariant()">
-                        ${product.variants.map((variant, i) => `
-                            <option value="${i}">
-                                ${variant.name} - $${variant.price.toFixed(2)}
-                                ${variant.stock === 0 ? ' (Out of Stock)' : ''}
-                            </option>
+            <div class="product-detail">
+                <div class="product-gallery">
+                    <div class="main-image">
+                        <img id="main-product-image" src="${images[0]}" alt="${product.name}">
+                    </div>
+                    ${images.length > 1 ? `
+                    <div class="image-thumbnails">
+                        ${images.map((img, i) => `
+                            <img src="${img}" 
+                                 alt="${product.name}" 
+                                 class="thumbnail ${i === 0 ? 'active' : ''}"
+                                 onclick="changeMainImage('${img}', this)">
                         `).join('')}
-                    </select>
-                </div>
-                ` : ''}
-                
-                <div class="product-stock" id="product-stock">
-                    ${getStockDisplay(product)}
+                    </div>
+                    ` : ''}
                 </div>
                 
-                <div class="product-actions">
-                    <button onclick="addToCart()" class="btn btn-primary btn-large" id="add-to-cart-btn">
-                        Add to Cart
+                <div class="product-details">
+                    <h1>${product.name}</h1>
+                    <div class="product-price-large" id="product-price">${priceDisplay}</div>
+                    
+                    ${product.variants && product.variants.length > 0 ? `
+                    <div class="variant-selector">
+                        <label for="variant-select">Choose Option:</label>
+                        <select id="variant-select" onchange="updateSelectedVariant()">
+                            ${product.variants.map((variant, i) => `
+                                <option value="${i}">
+                                    ${variant.name} - $${variant.price.toFixed(2)}
+                                    ${variant.track_inventory !== false && variant.stock === 0 ? ' (Out of Stock)' : ''}
+                                </option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="product-stock-info">
+                        <span id="stock-display" class="${inStock ? 'in-stock-badge' : 'out-of-stock-badge'}">
+                            ${stockDisplay}
+                        </span>
+                    </div>
+                    
+                    <div class="product-description-full">
+                        ${product.description}
+                    </div>
+                    
+                    <button onclick="addToCart()" class="btn btn-primary btn-large btn-full" id="add-to-cart-btn" ${!inStock ? 'disabled' : ''}>
+                        ${inStock ? 'Add to Cart' : 'Out of Stock'}
                     </button>
                 </div>
             </div>
@@ -108,23 +139,6 @@ function displayProduct(product) {
     // Update stock status if variants
     if (product.variants && product.variants.length > 0) {
         updateStockDisplay();
-    }
-}
-
-function getStockDisplay(product) {
-    if (product.track_inventory === false) {
-        return '<span style="color: #10B981; font-weight: 600;">✓ In Stock</span>';
-    }
-    
-    if (product.variants && product.variants.length > 0) {
-        // Stock will be shown for selected variant
-        return '<span id="variant-stock"></span>';
-    }
-    
-    if (product.stock > 0) {
-        return `<span style="color: #10B981; font-weight: 600;">✓ In Stock (${product.stock} available)</span>`;
-    } else {
-        return '<span style="color: #EF4444; font-weight: 600;">✗ Out of Stock</span>';
     }
 }
 
@@ -141,20 +155,26 @@ function updateSelectedVariant() {
 }
 
 function updateStockDisplay() {
-    const stockEl = document.getElementById('variant-stock');
+    const stockEl = document.getElementById('stock-display');
     const addBtn = document.getElementById('add-to-cart-btn');
     
     if (!selectedVariant) return;
     
-    if (selectedVariant.stock > 0) {
-        stockEl.innerHTML = `<span style="color: #10B981; font-weight: 600;">✓ In Stock (${selectedVariant.stock} available)</span>`;
-        addBtn.disabled = false;
-        addBtn.style.opacity = '1';
+    let inStock = true;
+    let stockText = '';
+    
+    if (selectedVariant.track_inventory !== false) {
+        inStock = selectedVariant.stock > 0;
+        stockText = inStock ? `✓ In Stock (${selectedVariant.stock} available)` : '✗ Out of Stock';
     } else {
-        stockEl.innerHTML = '<span style="color: #EF4444; font-weight: 600;">✗ Out of Stock</span>';
-        addBtn.disabled = true;
-        addBtn.style.opacity = '0.5';
+        stockText = '✓ In Stock';
     }
+    
+    stockEl.textContent = stockText;
+    stockEl.className = inStock ? 'in-stock-badge' : 'out-of-stock-badge';
+    
+    addBtn.disabled = !inStock;
+    addBtn.textContent = inStock ? 'Add to Cart' : 'Out of Stock';
 }
 
 function changeMainImage(imageSrc, thumbnail) {
@@ -214,7 +234,7 @@ function addToCart() {
     // Show feedback
     const btn = document.getElementById('add-to-cart-btn');
     const originalText = btn.textContent;
-    btn.textContent = '✓ Added!';
+    btn.textContent = '✓ Added to Cart!';
     btn.style.background = '#10B981';
     setTimeout(() => {
         btn.textContent = originalText;

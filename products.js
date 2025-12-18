@@ -1,4 +1,4 @@
-// All products page with variants support
+// All products page - FIXED VERSION
 let allProducts = [];
 
 async function loadProducts() {
@@ -15,15 +15,23 @@ async function loadProducts() {
         displayProducts(allProducts);
     } catch (error) {
         console.error('Error loading products:', error);
-        document.getElementById('products-grid').innerHTML = '<p>Error loading products</p>';
+        const grid = document.getElementById('products-grid');
+        if (grid) {
+            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #6B7280;">Error loading products</p>';
+        }
     }
 }
 
 function displayProducts(products) {
     const grid = document.getElementById('products-grid');
+    
+    if (!grid) {
+        console.error('Products grid not found');
+        return;
+    }
 
     if (products.length === 0) {
-        grid.innerHTML = '<p style="text-align: center; padding: 3rem; color: #6B7280;">No products available</p>';
+        grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #6B7280;">No products available</p>';
         return;
     }
 
@@ -45,16 +53,19 @@ function displayProducts(products) {
             priceDisplay = `$${product.price.toFixed(2)}`;
         }
         
+        // Check if has variants
+        const variantBadge = product.variants && product.variants.length > 0 
+            ? `<div style="position: absolute; top: 8px; left: 8px; background: rgba(59,130,246,0.9); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">${product.variants.length} options</div>` 
+            : '';
+        
         return `
         <div class="product-card" onclick="window.location.href='product.html?id=${product.id}'">
-            <div class="product-image">
-                <img src="${image}" alt="${product.name}">
-                ${product.variants && product.variants.length > 0 ? 
-                    `<div style="position: absolute; top: 8px; left: 8px; background: rgba(59,130,246,0.9); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">${product.variants.length} options</div>` 
-                    : ''}
+            <div class="product-image-container" style="position: relative;">
+                <img src="${image}" alt="${product.name}" class="product-image">
+                ${variantBadge}
             </div>
-            <div class="product-details">
-                <h3 class="product-title">${product.name}</h3>
+            <div class="product-info">
+                <h3 class="product-name">${product.name}</h3>
                 <p class="product-description">${product.description}</p>
                 <div class="product-price">${priceDisplay}</div>
             </div>
