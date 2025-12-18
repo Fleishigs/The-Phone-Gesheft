@@ -1,155 +1,126 @@
-// Shopping cart functionality
+// Shopping cart with VARIANTS support
+let cart = [];
 
-function getCart() {
-    return JSON.parse(localStorage.getItem('cart') || '[]');
-}
-
-function saveCart(cart) {
-    localStorage.setItem('cart', JSON.stringify(cart));
+function loadCart() {
+    cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    displayCart();
     updateCartCount();
 }
 
-function updateCartCount() {
-    const cart = getCart();
-    const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-    document.querySelectorAll('.cart-count').forEach(el => {
-        el.textContent = count;
-    });
-}
-
-function removeFromCart(productId) {
-    let cart = getCart();
-    cart = cart.filter(item => item.id !== productId);
-    saveCart(cart);
-    displayCart();
-}
-
-function updateQuantity(productId, change) {
-    const cart = getCart();
-    const item = cart.find(i => i.id === productId);
-    if (item) {
-        item.quantity += change;
-        if (item.quantity <= 0) {
-            removeFromCart(productId);
-        } else {
-            saveCart(cart);
-            displayCart();
-        }
-    }
-}
-
 function displayCart() {
-    const cart = getCart();
-    const container = document.getElementById('cart-container');
-    
-    if (!container) return;
-    
+    const container = document.getElementById('cart-items');
+    const totalEl = document.getElementById('cart-total');
+
     if (cart.length === 0) {
         container.innerHTML = `
-            <div class="empty-cart">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 80px; height: 80px; color: #9CA3AF; margin: 0 auto 1rem;">
-                    <circle cx="9" cy="21" r="1"/>
-                    <circle cx="20" cy="21" r="1"/>
-                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                </svg>
-                <h2>Your cart is empty</h2>
-                <p>Add some products to get started!</p>
-                <a href="/products" class="btn btn-primary btn-large">Shop Products</a>
+            <div style="text-align: center; padding: 3rem;">
+                <p style="color: #6B7280; font-size: 1.125rem; margin-bottom: 1rem;">Your cart is empty</p>
+                <a href="products.html" class="btn btn-primary">Continue Shopping</a>
             </div>
         `;
+        totalEl.textContent = '$0.00';
+        document.getElementById('checkout-btn').disabled = true;
         return;
     }
-    
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    
-    container.innerHTML = `
-        <div class="cart-grid">
-            <div class="cart-items">
-                ${cart.map(item => `
-                    <div class="cart-item">
-                        <div class="cart-item-image">
-                            ${item.image ? 
-                                `<img src="${item.image}" alt="${item.name}">` :
-                                `<div class="product-image-placeholder">No Image</div>`
-                            }
-                        </div>
-                        <div class="cart-item-details">
-                            <h3>${item.name}</h3>
-                            <div class="cart-item-price">$${item.price.toFixed(2)}</div>
-                        </div>
-                        <div class="cart-item-quantity">
-                            <button class="qty-btn" onclick="updateQuantity(${item.id}, -1)">−</button>
-                            <span>${item.quantity}</span>
-                            <button class="qty-btn" onclick="updateQuantity(${item.id}, 1)">+</button>
-                        </div>
-                        <div class="cart-item-total">
-                            $${(item.price * item.quantity).toFixed(2)}
-                        </div>
-                        <button class="cart-item-remove" onclick="removeFromCart(${item.id})">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="18" y1="6" x2="6" y2="18"/>
-                                <line x1="6" y1="6" x2="18" y2="18"/>
-                            </svg>
-                        </button>
-                    </div>
-                `).join('')}
+
+    container.innerHTML = cart.map((item, index) => `
+        <div class="cart-item">
+            <img src="${item.image}" alt="${item.name}" class="cart-item-image">
+            <div class="cart-item-details">
+                <h3>${item.name}</h3>
+                ${item.variant ? `<p style="color: #6B7280; font-size: 0.875rem; margin-top: 0.25rem;">Variant: ${item.variant}</p>` : ''}
+                <div class="cart-item-price">$${item.price.toFixed(2)}</div>
             </div>
-            
-            <div class="cart-summary">
-                <h2>Order Summary</h2>
-                <div class="summary-row">
-                    <span>Subtotal</span>
-                    <span>$${total.toFixed(2)}</span>
-                </div>
-                <div class="summary-row">
-                    <span>Shipping</span>
-                    <span>Calculated at checkout</span>
-                </div>
-                <div class="summary-total">
-                    <span>Total</span>
-                    <span>$${total.toFixed(2)}</span>
-                </div>
-                <button class="btn btn-primary btn-large btn-full" onclick="checkoutCart()">
-                    Proceed to Checkout
-                </button>
-                <a href="/products" class="btn btn-secondary btn-full" style="margin-top: 1rem;">
-                    Continue Shopping
-                </a>
+            <div class="cart-item-quantity">
+                <button onclick="updateQuantity(${index}, -1)" class="quantity-btn">-</button>
+                <span>${item.quantity}</span>
+                <button onclick="updateQuantity(${index}, 1)" class="quantity-btn">+</button>
             </div>
+            <div class="cart-item-subtotal">
+                $${(item.price * item.quantity).toFixed(2)}
+            </div>
+            <button onclick="removeFromCart(${index})" class="remove-btn">×</button>
         </div>
-    `;
+    `).join('');
+
+    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    totalEl.textContent = `$${total.toFixed(2)}`;
+    document.getElementById('checkout-btn').disabled = false;
 }
 
-async function checkoutCart() {
-    const cart = getCart();
-    
-    if (cart.length === 0) {
-        alert('Your cart is empty');
-        return;
+function updateQuantity(index, change) {
+    cart[index].quantity += change;
+    if (cart[index].quantity <= 0) {
+        cart.splice(index, 1);
     }
-    
+    saveCart();
+    displayCart();
+    updateCartCount();
+}
+
+function removeFromCart(index) {
+    cart.splice(index, 1);
+    saveCart();
+    displayCart();
+    updateCartCount();
+}
+
+function saveCart() {
+    localStorage.setItem('cart', JSON.stringify(cart));
+}
+
+function updateCartCount() {
+    const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const badge = document.querySelector('.cart-count');
+    if (badge) {
+        badge.textContent = count;
+        badge.style.display = count > 0 ? 'flex' : 'none';
+    }
+}
+
+async function proceedToCheckout() {
+    if (cart.length === 0) return;
+
     try {
+        // Prepare line items for Stripe
+        const lineItems = cart.map(item => ({
+            price_data: {
+                currency: 'usd',
+                product_data: {
+                    name: item.name + (item.variant ? ` (${item.variant})` : ''),
+                    images: [item.image]
+                },
+                unit_amount: Math.round(item.price * 100)
+            },
+            quantity: item.quantity
+        }));
+
         const response = await fetch('/.netlify/functions/create-checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cart })
+            body: JSON.stringify({ lineItems })
         });
-        
-        const data = await response.json();
-        
-        if (data.error) throw new Error(data.error);
-        
-        await stripe.redirectToCheckout({ sessionId: data.sessionId });
-        
+
+        const { sessionId, error } = await response.json();
+
+        if (error) {
+            alert('Error: ' + error);
+            return;
+        }
+
+        // Redirect to Stripe Checkout
+        const result = await stripe.redirectToCheckout({ sessionId });
+
+        if (result.error) {
+            alert(result.error.message);
+        }
     } catch (error) {
         console.error('Checkout error:', error);
         alert('Error processing checkout. Please try again.');
     }
 }
 
-// Initialize
-if (document.getElementById('cart-container')) {
-    displayCart();
-}
+document.getElementById('checkout-btn')?.addEventListener('click', proceedToCheckout);
 
-updateCartCount();
+// Initialize
+loadCart();
