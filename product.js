@@ -1,257 +1,269 @@
-// Single product page - FIXED VERSION
-const productId = new URLSearchParams(window.location.search).get('id');
-let currentProduct = null;
+// Single product detail page - FIXED WITH VARIANTS
+const urlParams = new URLSearchParams(window.location.search);
+const productId = urlParams.get('id');
+
+if (!productId) {
+    window.location.href = '/products';
+}
+
+let product = null;
+let allCategories = [];
+let allTags = [];
+let currentImageIndex = 0;
 let selectedVariant = null;
 
 async function loadProduct() {
-    if (!productId) {
-        document.getElementById('product-content').innerHTML = '<div class="container"><p>Product not found</p></div>';
+    const [productResult, categoriesResult, tagsResult] = await Promise.all([
+        supabase.from('products').select('*').eq('id', productId).single(),
+        supabase.from('categories').select('*'),
+        supabase.from('tags').select('*')
+    ]);
+    
+    if (productResult.error || !productResult.data) {
+        window.location.href = '/products';
         return;
     }
-
-    try {
-        const { data: product, error } = await supabase
-            .from('products')
-            .select('*')
-            .eq('id', productId)
-            .single();
-
-        if (error) throw error;
-        if (!product) {
-            document.getElementById('product-content').innerHTML = '<div class="container"><p>Product not found</p></div>';
-            return;
-        }
-
-        currentProduct = product;
-        
-        // If product has variants, select first one by default
-        if (product.variants && product.variants.length > 0) {
-            selectedVariant = product.variants[0];
-        }
-        
-        displayProduct(product);
-    } catch (error) {
-        console.error('Error loading product:', error);
-        document.getElementById('product-content').innerHTML = '<div class="container"><p>Error loading product</p></div>';
+    
+    product = productResult.data;
+    allCategories = categoriesResult.data || [];
+    allTags = tagsResult.data || [];
+    
+    // If product has variants, select first one
+    if (product.variants && product.variants.length > 0) {
+        selectedVariant = product.variants[0];
     }
+    
+    displayProduct();
+    updateCartCount();
 }
 
-function displayProduct(product) {
-    const container = document.getElementById('product-content');
-    const images = product.images || [product.image_url];
+function displayProduct() {
+    document.getElementById('page-title').textContent = product.seo_title || product.name;
+    document.getElementById('page-description').content = product.seo_description || product.description.substring(0, 160);
     
-    // Determine display price
-    let priceDisplay = '';
-    let currentPrice = product.price;
+    const images = product.images && product.images.length > 0 ? product.images : [product.image_url];
     
+    const categoryNames = product.category_ids 
+        ? product.category_ids.map(id => {
+            const cat = allCategories.find(c => c.id === id);
+            return cat ? cat.name : '';
+        }).filter(Boolean)
+        : [];
+    
+    const tagNames = product.tag_ids 
+        ? product.tag_ids.map(id => {
+            const tag = allTags.find(t => t.id === id);
+            return tag ? tag.name : '';
+        }).filter(Boolean)
+        : [];
+    
+    const features = product.features ? product.features.split('\n').filter(f => f.trim()) : [];
+    
+    // Check stock - variants or regular
+    let outOfStock = false;
     if (product.variants && product.variants.length > 0) {
-        const prices = product.variants.map(v => v.price);
-        const minPrice = Math.min(...prices);
-        const maxPrice = Math.max(...prices);
-        if (minPrice === maxPrice) {
-            priceDisplay = `$${minPrice.toFixed(2)}`;
-            currentPrice = minPrice;
-        } else {
-            priceDisplay = `$${minPrice.toFixed(2)} - $${maxPrice.toFixed(2)}`;
-            currentPrice = selectedVariant.price;
-        }
+        outOfStock = selectedVariant.track_inventory !== false && selectedVariant.stock <= 0;
+    } else {
+        const trackInventory = product.track_inventory !== false;
+        outOfStock = trackInventory && product.stock <= 0;
+    }
+    
+    // Price display
+    let priceDisplay = '';
+    if (product.variants && product.variants.length > 0) {
+        priceDisplay = `$${selectedVariant.price.toFixed(2)}`;
     } else {
         priceDisplay = `$${product.price.toFixed(2)}`;
     }
     
-    // Check stock
-    let inStock = true;
-    let stockDisplay = '';
-    
-    if (product.variants && product.variants.length > 0) {
-        if (selectedVariant.track_inventory !== false) {
-            inStock = selectedVariant.stock > 0;
-            stockDisplay = inStock ? `✓ In Stock (${selectedVariant.stock} available)` : '✗ Out of Stock';
-        } else {
-            stockDisplay = '✓ In Stock';
-        }
-    } else {
-        if (product.track_inventory !== false) {
-            inStock = product.stock > 0;
-            stockDisplay = inStock ? `✓ In Stock (${product.stock} available)` : '✗ Out of Stock';
-        } else {
-            stockDisplay = '✓ In Stock';
-        }
-    }
-    
-    container.innerHTML = `
-        <div class="container">
-            <a href="products.html" class="back-link">← Back to Products</a>
-            
-            <div class="product-detail">
-                <div class="product-gallery">
-                    <div class="main-image">
-                        <img id="main-product-image" src="${images[0]}" alt="${product.name}">
-                    </div>
-                    ${images.length > 1 ? `
-                    <div class="image-thumbnails">
-                        ${images.map((img, i) => `
-                            <img src="${img}" 
-                                 alt="${product.name}" 
-                                 class="thumbnail ${i === 0 ? 'active' : ''}"
-                                 onclick="changeMainImage('${img}', this)">
-                        `).join('')}
-                    </div>
-                    ` : ''}
+    document.getElementById('product-detail').innerHTML = `
+        <div class="product-gallery">
+            <div class="main-image">
+                <img src="${images[currentImageIndex]}" alt="${product.name}" id="main-product-image">
+            </div>
+            ${images.length > 1 ? `
+                <div class="image-thumbnails">
+                    ${images.map((img, i) => `
+                        <img src="${img}" 
+                             class="thumbnail ${i === 0 ? 'active' : ''}" 
+                             onclick="changeImage(${i})"
+                             alt="View ${i + 1}">
+                    `).join('')}
                 </div>
-                
-                <div class="product-details">
-                    <h1>${product.name}</h1>
-                    <div class="product-price-large" id="product-price">${priceDisplay}</div>
-                    
-                    ${product.variants && product.variants.length > 0 ? `
-                    <div class="variant-selector">
-                        <label for="variant-select">Choose Option:</label>
-                        <select id="variant-select" onchange="updateSelectedVariant()">
-                            ${product.variants.map((variant, i) => `
-                                <option value="${i}">
-                                    ${variant.name} - $${variant.price.toFixed(2)}
-                                    ${variant.track_inventory !== false && variant.stock === 0 ? ' (Out of Stock)' : ''}
-                                </option>
-                            `).join('')}
-                        </select>
-                    </div>
-                    ` : ''}
-                    
-                    <div class="product-stock-info">
-                        <span id="stock-display" class="${inStock ? 'in-stock-badge' : 'out-of-stock-badge'}">
-                            ${stockDisplay}
-                        </span>
-                    </div>
-                    
-                    <div class="product-description-full">
-                        ${product.description}
-                    </div>
-                    
-                    <button onclick="addToCart()" class="btn btn-primary btn-large btn-full" id="add-to-cart-btn" ${!inStock ? 'disabled' : ''}>
-                        ${inStock ? 'Add to Cart' : 'Out of Stock'}
+            ` : ''}
+        </div>
+        
+        <div class="product-details">
+            <h1>${product.name}</h1>
+            
+            ${categoryNames.length > 0 ? `
+                <div class="product-meta-categories">
+                    ${categoryNames.map(c => `<span class="cat-badge">${c}</span>`).join('')}
+                </div>
+            ` : ''}
+            
+            <div class="product-price-large" id="product-price">${priceDisplay}</div>
+            
+            ${product.variants && product.variants.length > 0 ? `
+                <div class="variant-selector">
+                    <label for="variant-select">Choose Option:</label>
+                    <select id="variant-select" onchange="updateSelectedVariant()">
+                        ${product.variants.map((variant, i) => `
+                            <option value="${i}">
+                                ${variant.name} - $${variant.price.toFixed(2)}
+                                ${variant.track_inventory !== false && variant.stock === 0 ? ' (Out of Stock)' : ''}
+                            </option>
+                        `).join('')}
+                    </select>
+                </div>
+            ` : ''}
+            
+            <div class="product-stock-info">
+                <span id="stock-badge" class="${outOfStock ? 'out-of-stock-badge' : 'in-stock-badge'}">
+                    ${outOfStock ? 'Temporarily Unavailable' : 'In Stock'}
+                </span>
+            </div>
+            
+            <p class="product-description-full">${product.description}</p>
+            
+            ${features.length > 0 ? `
+                <div class="product-features">
+                    <h3>Features</h3>
+                    <ul>
+                        ${features.map(f => `<li>${f}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
+            
+            ${tagNames.length > 0 ? `
+                <div class="product-tags-section">
+                    <strong>Tags:</strong>
+                    ${tagNames.map(t => `<span class="tag-badge">${t}</span>`).join('')}
+                </div>
+            ` : ''}
+            
+            ${!outOfStock ? `
+                <div class="product-actions" style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <button class="btn btn-secondary btn-large" style="flex: 1;" onclick="addToCartDetail()">
+                        Add to Cart
+                    </button>
+                    <button class="btn btn-primary btn-large" style="flex: 1;" onclick="buyNow()">
+                        Buy Now
                     </button>
                 </div>
-            </div>
+            ` : ''}
         </div>
     `;
-    
-    // Update stock status if variants
-    if (product.variants && product.variants.length > 0) {
-        updateStockDisplay();
-    }
 }
 
 function updateSelectedVariant() {
     const select = document.getElementById('variant-select');
     const variantIndex = parseInt(select.value);
-    selectedVariant = currentProduct.variants[variantIndex];
+    selectedVariant = product.variants[variantIndex];
     
     // Update price
     document.getElementById('product-price').textContent = `$${selectedVariant.price.toFixed(2)}`;
     
     // Update stock
-    updateStockDisplay();
+    const outOfStock = selectedVariant.track_inventory !== false && selectedVariant.stock <= 0;
+    const badge = document.getElementById('stock-badge');
+    badge.textContent = outOfStock ? 'Temporarily Unavailable' : 'In Stock';
+    badge.className = outOfStock ? 'out-of-stock-badge' : 'in-stock-badge';
 }
 
-function updateStockDisplay() {
-    const stockEl = document.getElementById('stock-display');
-    const addBtn = document.getElementById('add-to-cart-btn');
+function changeImage(index) {
+    currentImageIndex = index;
+    const images = product.images && product.images.length > 0 ? product.images : [product.image_url];
+    document.getElementById('main-product-image').src = images[index];
     
-    if (!selectedVariant) return;
-    
-    let inStock = true;
-    let stockText = '';
-    
-    if (selectedVariant.track_inventory !== false) {
-        inStock = selectedVariant.stock > 0;
-        stockText = inStock ? `✓ In Stock (${selectedVariant.stock} available)` : '✗ Out of Stock';
-    } else {
-        stockText = '✓ In Stock';
-    }
-    
-    stockEl.textContent = stockText;
-    stockEl.className = inStock ? 'in-stock-badge' : 'out-of-stock-badge';
-    
-    addBtn.disabled = !inStock;
-    addBtn.textContent = inStock ? 'Add to Cart' : 'Out of Stock';
+    document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
+        thumb.classList.toggle('active', i === index);
+    });
 }
 
-function changeMainImage(imageSrc, thumbnail) {
-    document.getElementById('main-product-image').src = imageSrc;
-    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-    thumbnail.classList.add('active');
-}
-
-function addToCart() {
+function addToCartDetail() {
+    if (!product) return;
+    
+    const images = product.images && product.images.length > 0 ? product.images : [product.image_url];
+    const mainImage = images[0];
+    
     let cart = JSON.parse(localStorage.getItem('cart') || '[]');
     
-    // Determine what to add to cart
-    let cartItem;
+    // If product has variants
     if (selectedVariant) {
-        // Add variant
-        cartItem = {
-            id: currentProduct.id,
-            name: currentProduct.name,
-            price: selectedVariant.price,
-            variant: selectedVariant.name,
-            image: currentProduct.images?.[0] || currentProduct.image_url,
-            quantity: 1
-        };
-        
-        // Check if this exact variant already in cart
-        const existingIndex = cart.findIndex(item => 
-            item.id === currentProduct.id && item.variant === selectedVariant.name
-        );
-        
-        if (existingIndex > -1) {
-            cart[existingIndex].quantity += 1;
+        const existing = cart.find(item => item.id === product.id && item.variant === selectedVariant.name);
+        if (existing) {
+            existing.quantity += 1;
         } else {
-            cart.push(cartItem);
+            cart.push({
+                id: product.id,
+                name: product.name,
+                price: selectedVariant.price,
+                variant: selectedVariant.name,
+                image: mainImage,
+                quantity: 1
+            });
         }
     } else {
-        // Add regular product (no variant)
-        cartItem = {
-            id: currentProduct.id,
-            name: currentProduct.name,
-            price: currentProduct.price,
-            image: currentProduct.images?.[0] || currentProduct.image_url,
-            quantity: 1
-        };
-        
-        const existingIndex = cart.findIndex(item => item.id === currentProduct.id && !item.variant);
-        
-        if (existingIndex > -1) {
-            cart[existingIndex].quantity += 1;
+        // Regular product
+        const existing = cart.find(item => item.id === product.id && !item.variant);
+        if (existing) {
+            existing.quantity += 1;
         } else {
-            cart.push(cartItem);
+            cart.push({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image: mainImage,
+                quantity: 1
+            });
         }
     }
     
     localStorage.setItem('cart', JSON.stringify(cart));
     updateCartCount();
     
-    // Show feedback
-    const btn = document.getElementById('add-to-cart-btn');
-    const originalText = btn.textContent;
-    btn.textContent = '✓ Added to Cart!';
-    btn.style.background = '#10B981';
+    showNotification(`${product.name}${selectedVariant ? ' (' + selectedVariant.name + ')' : ''} added to cart!`);
+}
+
+function buyNow() {
+    if (!product) return;
+    addToCartDetail();
+    window.location.href = '/cart';
+}
+
+function showNotification(message) {
+    const notification = document.createElement('div');
+    notification.style.cssText = 'position: fixed; top: 100px; right: 20px; background: #10B981; color: white; padding: 1rem 2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 10000; animation: slideIn 0.3s ease;';
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
     setTimeout(() => {
-        btn.textContent = originalText;
-        btn.style.background = '';
-    }, 1500);
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 2000);
 }
 
 function updateCartCount() {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-    const badge = document.querySelector('.cart-count');
-    if (badge) {
-        badge.textContent = count;
-        badge.style.display = count > 0 ? 'flex' : 'none';
-    }
+    document.querySelectorAll('.cart-count').forEach(el => {
+        el.textContent = count;
+    });
 }
 
-// Initialize
+// Add animation keyframes
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(400px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(400px); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
+
 loadProduct();
-updateCartCount();
