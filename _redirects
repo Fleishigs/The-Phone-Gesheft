@@ -1,0 +1,19 @@
+# Clean URLs - redirect .html to non-.html
+/products.html   /products   301
+/product.html    /product    301
+/contact.html    /contact    301
+/cart.html       /cart       301
+/about.html      /about      301
+/admin.html      /admin      301
+/success.html    /success    301
+/faq.html        /faq        301
+
+# SPA fallback - serve the .html file for clean URLs
+/products   /products.html   200
+/product    /product.html    200
+/contact    /contact.html    200
+/cart       /cart.html       200
+/about      /about.html      200
+/admin      /admin.html      200
+/success    /success.html    200
+/faq        /faq.html        200

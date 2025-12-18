@@ -1,0 +1,9 @@
+{
+  "name": "kosherlynk",
+  "version": "1.0.0",
+  "description": "Browser-free phones e-commerce site",
+  "dependencies": {
+    "stripe": "^14.0.0",
+    "@supabase/supabase-js": "^2.39.0"
+  }
+}

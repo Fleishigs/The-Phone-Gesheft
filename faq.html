@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ - KosherLynk</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="main-nav">
+        <div class="container">
+            <div class="nav-content">
+                <a href="/" class="logo">
+                    <svg viewBox="0 0 40 40" class="logo-icon">
+                        <rect x="8" y="5" width="24" height="30" rx="4" fill="currentColor"/>
+                        <rect x="12" y="9" width="16" height="18" rx="2" fill="white"/>
+                        <circle cx="20" cy="31" r="2" fill="white"/>
+                    </svg>
+                    <span>KosherLynk</span>
+                </a>
+                <div class="nav-links">
+                    <a href="/">Home</a>
+                    <a href="/products">Products</a>
+                    <a href="/about">About</a>
+                    <a href="/contact">Contact</a>
+                    <a href="/faq">FAQ</a>
+                </div>
+                <div class="nav-actions">
+                    <a href="/cart" class="cart-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="9" cy="21" r="1"/>
+                            <circle cx="20" cy="21" r="1"/>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                        </svg>
+                        <span class="cart-count">0</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section class="page-hero">
+            <div class="container">
+                <h1>Frequently Asked Questions</h1>
+                <p>Everything you need to know about our phones</p>
+            </div>
+        </section>
+
+        <section class="faq-section">
+            <div class="container-small">
+                <div class="faq-list">
+                    <div class="faq-item">
+                        <h3>What makes these phones different?</h3>
+                        <p>Our phones are completely browser-free. You get all the essential features like calls, texts, GPS, and approved apps - without the internet browser that leads to endless scrolling and distractions.</p>
+                    </div>
+
+                    <div class="faq-item">
+                        <h3>Can I still use WhatsApp or other messaging apps?</h3>
+                        <p>Yes! Many approved messaging and communication apps work perfectly on our phones. We can help you set up the specific apps you need while keeping the browser disabled.</p>
+                    </div>
+
+                    <div class="faq-item">
+                        <h3>How does shipping work?</h3>
+                        <p>We offer free shipping on all orders over $100. Standard shipping takes 3-5 business days. Expedited shipping options are available at checkout.</p>
+                    </div>
+
+                    <div class="faq-item">
+                        <h3>What's your return policy?</h3>
+                        <p>We offer a 14-day money-back guarantee. If you're not completely satisfied with your phone, return it within 14 days for a full refund, no questions asked.</p>
+                    </div>
+
+                    <div class="faq-item">
+                        <h3>Can I customize which apps are installed?</h3>
+                        <p>Absolutely! We offer full customization services. Let us know which apps you need, and we'll configure your phone exactly to your specifications before shipping.</p>
+                    </div>
+
+                    <div class="faq-item">
+                        <h3>Do these phones work with my carrier?</h3>
+                        <p>Our phones are unlocked and work with all major US carriers including AT&T, T-Mobile, Verizon, and their MVNOs. International compatibility varies by model - contact us for details.</p>
+                    </div>
+
+                    <div class="faq-item">
+                        <h3>How do I set up my phone?</h3>
+                        <p>Every phone comes pre-configured and ready to use. Simply insert your SIM card, turn it on, and you're good to go. We also provide detailed setup instructions and free technical support.</p>
+                    </div>
+
+                    <div class="faq-item">
+                        <h3>Can I re-enable the browser later?</h3>
+                        <p>The browser is permanently disabled at the system level. This ensures the phone stays distraction-free. If you need specific functionality, we can help find alternative solutions using approved apps.</p>
+                    </div>
+                </div>
+
+                <div class="faq-cta">
+                    <h2>Still have questions?</h2>
+                    <p>We're here to help! Contact us and we'll answer any questions you have.</p>
+                    <a href="/contact" class="btn btn-primary btn-large">Contact Us</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>KosherLynk</h4>
+                    <p>Simple phones for a focused life.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/products">Products</a></li>
+                        <li><a href="/contact">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 KosherLynk. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.querySelectorAll('.cart-count').forEach(el => el.textContent = count);
+        }
+        updateCartCount();
+    </script>
+</body>
+</html>

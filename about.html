@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - KosherLynk</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="main-nav">
+        <div class="container">
+            <div class="nav-content">
+                <a href="/" class="logo">
+                    <svg viewBox="0 0 40 40" class="logo-icon">
+                        <rect x="8" y="5" width="24" height="30" rx="4" fill="currentColor"/>
+                        <rect x="12" y="9" width="16" height="18" rx="2" fill="white"/>
+                        <circle cx="20" cy="31" r="2" fill="white"/>
+                    </svg>
+                    <span>KosherLynk</span>
+                </a>
+                
+                <div class="nav-links">
+                    <a href="/">Home</a>
+                    <a href="/products">Products</a>
+                    <a href="/about">About</a>
+                    <a href="/contact">Contact</a>
+                    <a href="/faq">FAQ</a>
+                </div>
+                
+                <div class="nav-actions">
+                    <a href="/cart" class="cart-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="9" cy="21" r="1"/>
+                            <circle cx="20" cy="21" r="1"/>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                        </svg>
+                        <span class="cart-count">0</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section class="page-hero">
+            <div class="container">
+                <h1>About KosherLynk</h1>
+                <p>Helping you live a more focused, intentional life</p>
+            </div>
+        </section>
+
+        <section class="about-section">
+            <div class="container">
+                <div class="about-content">
+                    <div class="about-text">
+                        <h2>Our Mission</h2>
+                        <p>In a world of constant notifications, endless scrolling, and digital distractions, we believe there's a better way to stay connected.</p>
+                        
+                        <p>KosherLynk was born from a simple observation: smartphones are amazing tools, but the internet browser and social media apps have turned them into time-stealing devices that keep us from what truly matters.</p>
+                        
+                        <h3>Why We Do This</h3>
+                        <p>We've seen families sitting at dinner tables, each person absorbed in their phone. We've watched productivity plummet as people bounce between apps and websites. We've witnessed the anxiety that comes from constant digital stimulation.</p>
+                        
+                        <p>But we've also seen the transformation that happens when people take back control of their technology.</p>
+                        
+                        <h3>The Solution</h3>
+                        <p>Our phones give you everything you need—calls, texts, GPS, music, podcasts, and carefully selected apps—without the browser that leads to endless rabbit holes.</p>
+                        
+                        <p>No social media. No endless scrolling. No addictive algorithms. Just the tools you need to communicate, navigate, and live your life.</p>
+                        
+                        <h3>Who We Serve</h3>
+                        <ul class="about-list">
+                            <li><strong>Orthodox Jewish communities</strong> seeking technology that aligns with their values</li>
+                            <li><strong>Parents</strong> who want their children to have safe, filtered connectivity</li>
+                            <li><strong>Professionals</strong> who need to stay focused and productive</li>
+                            <li><strong>Anyone</strong> seeking digital minimalism and mental clarity</li>
+                        </ul>
+                        
+                        <h3>Our Promise</h3>
+                        <p>Every phone we sell is carefully configured to be 100% browser-free while maintaining full functionality for essential tasks. We provide expert support, customization options, and a 14-day money-back guarantee.</p>
+                        
+                        <p>Join hundreds of satisfied customers who've discovered what it's like to have a phone that serves them—instead of the other way around.</p>
+                    </div>
+                    
+                    <div class="about-stats">
+                        <div class="stat-box">
+                            <div class="stat-number">500+</div>
+                            <div class="stat-label">Happy Customers</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number">100%</div>
+                            <div class="stat-label">Browser-Free</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number">24/7</div>
+                            <div class="stat-label">Support</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number">14-Day</div>
+                            <div class="stat-label">Money Back</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="about-cta">
+                    <h2>Ready to Simplify Your Life?</h2>
+                    <p>Discover what it's like to have technology that works for you</p>
+                    <a href="/products" class="btn btn-primary btn-large">Browse Our Phones</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>KosherLynk</h4>
+                    <p>Simple phones for a focused life.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/products">Products</a></li>
+                        <li><a href="/about">About</a></li>
+                        <li><a href="/contact">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 KosherLynk. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script>
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.querySelectorAll('.cart-count').forEach(el => el.textContent = count);
+        }
+        updateCartCount();
+    </script>
+</body>
+</html>

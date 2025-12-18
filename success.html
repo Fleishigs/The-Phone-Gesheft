@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful - KosherLynk</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="main-nav">
+        <div class="container">
+            <div class="nav-content">
+                <a href="/" class="logo">
+                    <svg viewBox="0 0 40 40" class="logo-icon">
+                        <rect x="8" y="5" width="24" height="30" rx="4" fill="currentColor"/>
+                        <rect x="12" y="9" width="16" height="18" rx="2" fill="white"/>
+                        <circle cx="20" cy="31" r="2" fill="white"/>
+                    </svg>
+                    <span>KosherLynk</span>
+                </a>
+                <div class="nav-links">
+                    <a href="/products">Products</a>
+                    <a href="/contact">Contact</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section class="page-hero">
+            <div class="container">
+                <div style="text-align: center; padding: 4rem 0;">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" style="margin: 0 auto 2rem;">
+                        <circle cx="12" cy="12" r="10" fill="#10B981"/>
+                        <path d="M8 12l2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <h1 style="margin-bottom: 1rem;">Payment Successful!</h1>
+                    <p style="font-size: 1.25rem; color: #6B7280; margin-bottom: 2rem;">Thank you for your purchase. We'll send you a confirmation email shortly.</p>
+                    <a href="/products" class="btn btn-primary btn-large">Continue Shopping</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>KosherLynk</h4>
+                    <p>Simple phones for a focused life.</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 KosherLynk. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Clear cart after successful purchase
+        localStorage.removeItem('cart');
+    </script>
+</body>
+</html>
