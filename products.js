@@ -1,4 +1,4 @@
-// Products page functionality - WITH ADD TO CART BUTTONS
+// Products page functionality - WITH SOFT DELETE FILTER
 let allProducts = [];
 let allCategories = [];
 let allTags = [];
@@ -30,6 +30,7 @@ async function loadProducts() {
         .from('products')
         .select('*')
         .eq('status', 'active')
+        .eq('deleted', false)  // SOFT DELETE - Filter out deleted products
         .order('created_at', { ascending: false });
     
     allProducts = (data || []).filter(p => 
