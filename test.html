@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Test</title>
+</head>
+<body>
+    <h1>Testing Supabase...</h1>
+    <div id="result"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://xfswosnhewblxdtvtbcz.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhmc3dvc25oZXdibHhkdHZ0YmN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNDg5NjEsImV4cCI6MjA4MDcyNDk2MX0.xghqZwlpxQ6Gu0nz98wVUOOtz-Hqiw5NPNJ0mAE9TLc';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        async function testSupabase() {
+            try {
+                const { data, error } = await supabase.from('products').select('*').limit(3);
+                
+                if (error) throw error;
+                
+                document.getElementById('result').innerHTML = `
+                    <h2 style="color: green;">✅ SUCCESS!</h2>
+                    <p>Found ${data.length} products</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (err) {
+                document.getElementById('result').innerHTML = `
+                    <h2 style="color: red;">❌ ERROR</h2>
+                    <p>${err.message}</p>
+                `;
+            }
+        }
+        
+        testSupabase();
+    </script>
+</body>
+</html>
