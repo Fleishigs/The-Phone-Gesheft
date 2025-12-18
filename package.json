@@ -4,8 +4,5 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
     "stripe": "^14.0.0"
-  },
-  "devDependencies": {
-    "@netlify/plugin-scheduled-functions": "^1.0.0"
   }
 }
