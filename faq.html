@@ -7,113 +7,155 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Navigation -->
     <nav class="main-nav">
-        <div class="container">
-            <div class="nav-content">
-                <a href="/" class="logo">
-                    <svg viewBox="0 0 40 40" class="logo-icon">
-                        <rect x="8" y="5" width="24" height="30" rx="4" fill="currentColor"/>
-                        <rect x="12" y="9" width="16" height="18" rx="2" fill="white"/>
-                        <circle cx="20" cy="31" r="2" fill="white"/>
+        <div class="nav-content">
+            <a href="/" class="logo">
+                <img src="/h_logo.png" alt="The Phone Gesheft" style="height: 40px;">
+            </a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="products.html">Products</a>
+                <a href="about.html">About</a>
+                <a href="contact.html">Contact</a>
+                <a href="faq.html">FAQ</a>
+            </div>
+            <div class="nav-actions">
+                <a href="cart.html" class="cart-link">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
                     </svg>
-                    <span>The Phone Gesheft</span>
+                    <span class="cart-count">0</span>
                 </a>
-                <div class="nav-links">
-                    <a href="/">Home</a>
-                    <a href="/products">Products</a>
-                    <a href="/about">About</a>
-                    <a href="/contact">Contact</a>
-                    <a href="/faq">FAQ</a>
-                </div>
-                <div class="nav-actions">
-                    <a href="/cart" class="cart-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="9" cy="21" r="1"/>
-                            <circle cx="20" cy="21" r="1"/>
-                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                        </svg>
-                        <span class="cart-count">0</span>
-                    </a>
-                </div>
             </div>
         </div>
     </nav>
 
-    <main>
-        <section class="page-hero">
-            <div class="container">
-                <h1>Frequently Asked Questions</h1>
-                <p>Everything you need to know about our phones</p>
-            </div>
-        </section>
+    <!-- Page Hero -->
+    <section class="page-hero">
+        <div class="container">
+            <h1>Frequently Asked Questions</h1>
+            <p>Everything you need to know about browser-free phones</p>
+        </div>
+    </section>
 
-        <section class="faq-section">
-            <div class="container-small">
-                <div class="faq-list">
-                    <div class="faq-item">
-                        <h3>What makes these phones different?</h3>
-                        <p>Our phones are completely browser-free. You get all the essential features like calls, texts, GPS, and approved apps - without the internet browser that leads to endless scrolling and distractions.</p>
-                    </div>
-
-                    <div class="faq-item">
-                        <h3>Can I still use WhatsApp or other messaging apps?</h3>
-                        <p>Yes! Many approved messaging and communication apps work perfectly on our phones. We can help you set up the specific apps you need while keeping the browser disabled.</p>
-                    </div>
-
-                    <div class="faq-item">
-                        <h3>How does shipping work?</h3>
-                        <p>We offer free shipping on all orders over $100. Standard shipping takes 3-5 business days. Expedited shipping options are available at checkout.</p>
-                    </div>
-
-                    <div class="faq-item">
-                        <h3>What's your return policy?</h3>
-                        <p>We offer a 14-day money-back guarantee. If you're not completely satisfied with your phone, return it within 14 days for a full refund, no questions asked.</p>
-                    </div>
-
-                    <div class="faq-item">
-                        <h3>Can I customize which apps are installed?</h3>
-                        <p>Absolutely! We offer full customization services. Let us know which apps you need, and we'll configure your phone exactly to your specifications before shipping.</p>
-                    </div>
-
-                    <div class="faq-item">
-                        <h3>Do these phones work with my carrier?</h3>
-                        <p>Our phones are unlocked and work with all major US carriers including AT&T, T-Mobile, Verizon, and their MVNOs. International compatibility varies by model - contact us for details.</p>
-                    </div>
-
-                    <div class="faq-item">
-                        <h3>How do I set up my phone?</h3>
-                        <p>Every phone comes pre-configured and ready to use. Simply insert your SIM card, turn it on, and you're good to go. We also provide detailed setup instructions and free technical support.</p>
-                    </div>
-
-                    <div class="faq-item">
-                        <h3>Can I re-enable the browser later?</h3>
-                        <p>The browser is permanently disabled at the system level. This ensures the phone stays distraction-free. If you need specific functionality, we can help find alternative solutions using approved apps.</p>
-                    </div>
+    <!-- FAQ Section -->
+    <section class="faq-section">
+        <div class="container-small">
+            <div class="faq-list">
+                <div class="faq-item">
+                    <h3>What is a browser-free phone?</h3>
+                    <p>A browser-free phone is a smartphone that has had its web browser and other distracting apps removed or disabled. This allows you to use essential features like calls, texts, maps, and approved apps while avoiding the endless scrolling and time-wasting that comes with unrestricted internet access.</p>
                 </div>
 
-                <div class="faq-cta">
-                    <h2>Still have questions?</h2>
-                    <p>We're here to help! Contact us and we'll answer any questions you have.</p>
-                    <a href="/contact" class="btn btn-primary btn-large">Contact Us</a>
+                <div class="faq-item">
+                    <h3>Why would I want a phone without a browser?</h3>
+                    <p>Many people find that unlimited internet access on their phone leads to decreased productivity, poor sleep, anxiety, and less meaningful real-world connections. A browser-free phone helps you stay connected to what matters while eliminating digital distractions. It's perfect for students, professionals, parents, and anyone seeking a healthier relationship with technology.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>Can I still use important apps like maps, banking, or messaging?</h3>
+                    <p>Yes! Our phones come with essential apps that you choose. Common selections include GPS/maps, banking apps, ride-sharing, messaging apps like WhatsApp, music streaming, and other productivity tools. We work with you to customize which apps are available based on your needs.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>What if I need to look something up online?</h3>
+                    <p>For occasional web access needs, we recommend keeping a computer or tablet available. Many of our customers find that this intentional separation helps them be more thoughtful about their internet usage and reduces impulsive browsing.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>Will I still receive emails and notifications?</h3>
+                    <p>Yes, if you choose to keep email apps installed. You have complete control over which apps and notifications you want. Many customers choose to disable non-essential notifications to reduce distractions while keeping important ones active.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>Can I install new apps later?</h3>
+                    <p>This depends on the configuration you choose. Some setups allow you to install approved apps, while others are more restrictive. We can help you find the right balance between flexibility and accountability based on your goals.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>What phone models do you offer?</h3>
+                    <p>We offer both Android and iOS devices in various models and price ranges. Browse our Products page to see current inventory, or contact us to discuss which model would best suit your needs.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>How much do browser-free phones cost?</h3>
+                    <p>Prices vary based on the phone model and customization level. Our phones range from budget-friendly options to premium devices. Check our Products page for current pricing, or reach out for a personalized quote.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>Do you offer technical support?</h3>
+                    <p>Absolutely! We provide ongoing support to all our customers. Whether you need help with setup, troubleshooting, or adjusting your phone's configuration, we're here 24/7 to assist you.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>What's your return policy?</h3>
+                    <p>We offer a 14-day satisfaction guarantee. If you're not completely happy with your phone, you can return it for a full refund within 14 days of purchase. The phone must be in like-new condition with all original packaging.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>How long does shipping take?</h3>
+                    <p>Standard shipping takes 3-5 business days. We also offer expedited shipping options at checkout. All orders are shipped with tracking, and you'll receive updates throughout the delivery process.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>Are these phones compatible with my carrier?</h3>
+                    <p>Most of our phones are unlocked and work with all major carriers. We can verify compatibility with your specific carrier before you purchase. Just contact us with your carrier information and we'll confirm.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>Can I customize what's blocked on my phone?</h3>
+                    <p>Yes! Every phone is customized to your specifications. We'll work with you to determine which apps, websites, and features should be available or blocked. Your phone is configured specifically for your needs and goals.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>Is this suitable for children and teens?</h3>
+                    <p>Absolutely! Many parents choose browser-free phones for their children to provide communication capabilities without the risks of unrestricted internet access. We offer family-friendly configurations with appropriate parental controls.</p>
                 </div>
             </div>
-        </section>
-    </main>
 
+            <!-- CTA Section -->
+            <div class="faq-cta">
+                <h2>Still have questions?</h2>
+                <p>We're here to help! Reach out and we'll get back to you within 24 hours.</p>
+                <a href="contact.html" class="btn btn-large">Contact Us</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
     <footer class="main-footer">
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-col">
                     <h4>The Phone Gesheft</h4>
-                    <p>Simple phones for a focused life.</p>
+                    <p>Browser-free phones for focused living. Take back control of your digital life.</p>
                 </div>
                 <div class="footer-col">
                     <h4>Quick Links</h4>
                     <ul>
                         <li><a href="/">Home</a></li>
-                        <li><a href="/products">Products</a></li>
-                        <li><a href="/contact">Contact</a></li>
-                        <li><a href="/faq">FAQ</a></li>
+                        <li><a href="products.html">Products</a></li>
+                        <li><a href="about.html">About</a></li>
+                        <li><a href="faq.html">FAQ</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Contact</h4>
+                    <ul class="contact-info">
+                        <li>
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            <a href="mailto:info@thephonegesheft.com">info@thephonegesheft.com</a>
+                        </li>
+                        <li>
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                            </svg>
+                            <span>1-800-GESHEFT</span>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -123,13 +165,9 @@
         </div>
     </footer>
 
-    <script>
-        function updateCartCount() {
-            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-            document.querySelectorAll('.cart-count').forEach(el => el.textContent = count);
-        }
-        updateCartCount();
-    </script>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
