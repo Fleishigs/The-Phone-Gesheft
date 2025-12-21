@@ -1058,36 +1058,37 @@ a {
     padding: 2rem 0;
 }
 
-/* Admin Login */
-.admin-login {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg-light);
+/* Variant Selector */
+.variant-selector {
+    margin: 1.5rem 0;
 }
 
-.login-box {
-    background: white;
-    padding: 3rem;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-    max-width: 400px;
-    width: 90%;
+.variant-selector label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #374151;
 }
 
-.login-header {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.error-message {
-    color: var(--danger);
+.variant-selector select {
+    width: 100%;
     padding: 0.75rem;
-    background: #FEE2E2;
+    border: 2px solid #E5E7EB;
     border-radius: 8px;
-    margin-top: 1rem;
-    text-align: center;
+    font-size: 1rem;
+    background: white;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.variant-selector select:hover {
+    border-color: #3B82F6;
+}
+
+.variant-selector select:focus {
+    outline: none;
+    border-color: #3B82F6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 /* Modal */
@@ -1137,10 +1138,15 @@ a {
     cursor: pointer;
 }
 
-/* Admin Dashboard */
+/* ===================================================
+   ADMIN DASHBOARD STYLES
+   =================================================== */
+
+/* Admin Layout */
 .admin-layout {
     display: flex;
     min-height: 100vh;
+    background: #F9FAFB;
 }
 
 .admin-sidebar {
@@ -1151,36 +1157,37 @@ a {
     position: fixed;
     height: 100vh;
     overflow-y: auto;
-    z-index: 100;
 }
 
-.admin-sidebar-logo {
-    padding: 0 1.5rem 2rem;
-    border-bottom: 1px solid #374151;
+.admin-main {
+    margin-left: 250px;
+    flex: 1;
+    padding: 2rem;
+    width: calc(100% - 250px);
+}
+
+.admin-header {
+    background: white;
+    padding: 1.5rem 2rem;
     margin-bottom: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.admin-sidebar-logo h2 {
-    color: white;
-    font-size: 1.25rem;
+.admin-header h1 {
     margin: 0;
+    font-size: 1.5rem;
 }
 
-.admin-sidebar-logo p {
-    color: #9CA3AF;
-    font-size: 0.875rem;
-    margin: 0.5rem 0 0;
-}
-
+/* Admin Menu */
 .admin-menu {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
-.admin-menu a {
-    display: flex;
-    align-items: center;
+.admin-menu .menu-link {
+    display: block;
     padding: 0.875rem 1.5rem;
     color: #D1D5DB;
     text-decoration: none;
@@ -1188,62 +1195,25 @@ a {
     font-weight: 500;
 }
 
-.admin-menu a:hover {
+.admin-menu .menu-link:hover {
     background: #374151;
     color: white;
 }
 
-.admin-menu a.active {
+.admin-menu .menu-link.active {
     background: #3B82F6;
     color: white;
 }
 
-.admin-sidebar-actions {
-    position: absolute;
-    bottom: 2rem;
-    left: 1.5rem;
-    right: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.admin-content {
-    margin-left: 250px;
-    flex: 1;
-    padding: 2rem;
-    background: #F9FAFB;
-    min-height: 100vh;
-}
-
-.admin-header {
+/* Admin Sections */
+.admin-section {
     background: white;
-    padding: 1.5rem;
+    padding: 2rem;
     border-radius: 8px;
-    margin-bottom: 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.admin-header h1 {
-    font-size: 1.5rem;
-    margin: 0;
-}
-
-.admin-header h2 {
-    font-size: 1.25rem;
-    margin: 0;
-}
-
-.admin-header p {
-    color: #6B7280;
-    font-size: 0.875rem;
-    margin: 0.25rem 0 0;
-}
-
-/* Dashboard Stats */
+/* Stats Grid */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -1254,70 +1224,73 @@ a {
 .stat-card {
     background: white;
     border-radius: 8px;
-    padding: 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+    padding: 1.5rem;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border-left: 4px solid #3B82F6;
 }
 
-.stat-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.stat-icon svg {
-    width: 24px;
-    height: 24px;
-}
-
-.stat-icon.blue {
-    background: #DBEAFE;
-    color: #3B82F6;
-}
-
-.stat-icon.green {
-    background: #D1FAE5;
-    color: #10B981;
-}
-
-.stat-icon.yellow {
-    background: #FEF3C7;
-    color: #F59E0B;
-}
-
-.stat-icon.purple {
-    background: #E0E7FF;
-    color: #6366F1;
-}
-
-.stat-content {
-    flex: 1;
-    min-width: 0;
-}
-
-.stat-label {
-    color: #6B7280;
+.stat-card h3 {
     font-size: 0.875rem;
-    margin-bottom: 0.25rem;
+    color: #6B7280;
+    margin: 0 0 0.5rem 0;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
 }
 
 .stat-value {
-    font-size: 1.75rem;
+    font-size: 2rem;
     font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+
+/* Admin Tables */
+.admin-table {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-top: 1rem;
+}
+
+.admin-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-table th {
+    background: #F9FAFB;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 2px solid #E5E7EB;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.admin-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #E5E7EB;
     color: #111827;
 }
 
-/* Admin Products Grid */
-.products-grid {
+.admin-table tr:last-child td {
+    border-bottom: none;
+}
+
+.admin-table tr:hover {
+    background: #F9FAFB;
+}
+
+/* Products Grid (Admin) */
+.products-admin-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 1.5rem;
+    margin-top: 1rem;
 }
 
 .product-admin-card {
@@ -1325,18 +1298,16 @@ a {
     border-radius: 8px;
     padding: 1.5rem;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.product-admin-card img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 8px;
-    margin-bottom: 1rem;
+.product-admin-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .product-admin-card h3 {
-    margin: 0 0 0.5rem;
+    margin: 1rem 0 0.5rem 0;
     font-size: 1.125rem;
 }
 
@@ -1356,6 +1327,7 @@ a {
 .product-admin-actions {
     display: flex;
     gap: 0.5rem;
+    margin-top: 1rem;
 }
 
 .btn-edit {
@@ -1367,6 +1339,7 @@ a {
     border-radius: 6px;
     cursor: pointer;
     font-weight: 500;
+    transition: background 0.2s;
 }
 
 .btn-edit:hover {
@@ -1382,388 +1355,54 @@ a {
     border-radius: 6px;
     cursor: pointer;
     font-weight: 500;
+    transition: background 0.2s;
 }
 
 .btn-delete:hover {
     background: #DC2626;
 }
 
-/* Admin Tables */
-.admin-table {
+/* Login Container */
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+}
+
+.login-box {
     background: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    padding: 3rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    max-width: 400px;
+    width: 90%;
 }
 
-.admin-table table {
-    width: 100%;
-    border-collapse: collapse;
+.login-box h1 {
+    margin: 0 0 2rem 0;
+    text-align: center;
+    color: #111827;
 }
 
-.admin-table th {
-    background: #F9FAFB;
-    padding: 1rem;
-    text-align: left;
-    font-weight: 600;
-    color: #374151;
-    border-bottom: 2px solid #E5E7EB;
-}
-
-.admin-table td {
-    padding: 1rem;
-    border-bottom: 1px solid #E5E7EB;
-}
-
-.admin-table tr:last-child td {
-    border-bottom: none;
-}
-
-.admin-table tr:hover {
-    background: #F9FAFB;
-}
-
+/* Responsive */
 @media (max-width: 768px) {
     .admin-sidebar {
         transform: translateX(-250px);
     }
-    .admin-content {
+    
+    .admin-main {
         margin-left: 0;
+        width: 100%;
         padding: 1rem;
     }
-}
-
-/* ===================================================
-   NEW ADDITIONS FOR VARIANTS & TOGGLE SWITCH
-   =================================================== */
-
-/* Toggle Switch for Track Inventory */
-.toggle-switch {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 26px;
-}
-
-.toggle-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.toggle-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: .4s;
-    border-radius: 34px;
-}
-
-.toggle-slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
-}
-
-input:checked + .toggle-slider {
-    background-color: #3B82F6;
-}
-
-input:checked + .toggle-slider:before {
-    transform: translateX(24px);
-}
-
-.track-inventory-row {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    background: #F9FAFB;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-}
-
-.track-inventory-row label {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    cursor: pointer;
-    font-weight: 600;
-    color: #374151;
-    margin: 0;
-}
-
-/* Variant Selector (Product Pages) */
-.variant-selector {
-    margin: 1.5rem 0;
-}
-
-.variant-selector label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    color: #374151;
-}
-
-.variant-selector select {
-    width: 100%;
-    padding: 0.75rem;
-    border: 2px solid #E5E7EB;
-    border-radius: 8px;
-    font-size: 1rem;
-    background: white;
-    cursor: pointer;
-    transition: border-color 0.2s;
-}
-
-.variant-selector select:hover {
-    border-color: #3B82F6;
-}
-
-.variant-selector select:focus {
-    outline: none;
-    border-color: #3B82F6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-/* Variant Manager (Admin Panel) */
-.variant-item {
-    background: #F9FAFB;
-    border: 2px solid #E5E7EB;
-    border-radius: 8px;
-    padding: 1rem;
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr auto;
-    gap: 1rem;
-    align-items: center;
-    margin-bottom: 0.75rem;
-}
-
-.variant-item input {
-    padding: 0.5rem;
-    border: 1px solid #D1D5DB;
-    border-radius: 6px;
-    font-size: 0.875rem;
-}
-
-.variant-remove-btn {
-    background: #EF4444;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    width: 32px;
-    height: 32px;
-    cursor: pointer;
-    font-size: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s;
-}
-
-.variant-remove-btn:hover {
-    background: #DC2626;
-}
-
-.add-variant-btn {
-    background: #10B981;
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.add-variant-btn:hover {
-    background: #059669;
-}
-
-/* Responsive for Variants */
-@media (max-width: 768px) {
-    .variant-item {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* ===================================================
-   CLEAN VARIANT SYSTEM - SHOPIFY STYLE
-   =================================================== */
-
-/* Variant Row Container */
-.variant-row {
-    background: white;
-    border: 2px solid #E5E7EB;
-    border-radius: 8px;
-    padding: 1.25rem;
-    margin-bottom: 1rem;
-    display: flex;
-    gap: 1rem;
-    align-items: flex-start;
-}
-
-/* Variant Fields Grid */
-.variant-fields {
-    flex: 1;
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr auto;
-    gap: 1rem;
-    align-items: end;
-}
-
-/* Individual Variant Field */
-.variant-field {
-    display: flex;
-    flex-direction: column;
-}
-
-.variant-field label {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 0.5rem;
-    display: block;
-}
-
-.variant-field input {
-    padding: 0.625rem;
-    border: 2px solid #E5E7EB;
-    border-radius: 6px;
-    font-size: 0.9375rem;
-    transition: border-color 0.2s;
-}
-
-.variant-field input:focus {
-    outline: none;
-    border-color: #3B82F6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.variant-field input:disabled {
-    background: #F3F4F6;
-    color: #9CA3AF;
-    cursor: not-allowed;
-}
-
-/* Toggle Field for Variants */
-.variant-field-toggle {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-    padding-bottom: 0.625rem;
-}
-
-.variant-field-toggle label:first-child {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 0.5rem;
-}
-
-/* Variant Remove Button */
-.variant-remove {
-    width: 40px;
-    height: 40px;
-    border-radius: 6px;
-    background: #FEE2E2;
-    border: none;
-    color: #DC2626;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    flex-shrink: 0;
-    margin-top: 1.75rem;
-}
-
-.variant-remove:hover {
-    background: #EF4444;
-    color: white;
-}
-
-.variant-remove svg {
-    width: 20px;
-    height: 20px;
-}
-
-/* Add Variant Button - Professional Style */
-.add-variant-btn {
-    background: white;
-    color: #3B82F6;
-    border: 2px dashed #3B82F6;
-    padding: 1rem 1.5rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.9375rem;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    width: 100%;
-    margin-top: 0.5rem;
-}
-
-.add-variant-btn:hover {
-    background: #EFF6FF;
-    border-color: #2563EB;
-    color: #2563EB;
-    transform: translateY(-1px);
-}
-
-.add-variant-btn svg {
-    width: 20px;
-    height: 20px;
-}
-
-/* Responsive Variant Fields */
-@media (max-width: 968px) {
-    .variant-fields {
-        grid-template-columns: 1fr 1fr;
-        gap: 0.75rem;
-    }
     
-    .variant-field-toggle {
-        grid-column: 1 / -1;
-        flex-direction: row;
-        justify-content: flex-start;
-        padding-bottom: 0;
-        gap: 1rem;
-    }
-    
-    .variant-field-toggle label:first-child {
-        margin-bottom: 0;
-    }
-}
-
-@media (max-width: 640px) {
-    .variant-row {
-        flex-direction: column;
-    }
-    
-    .variant-fields {
+    .stats-grid {
         grid-template-columns: 1fr;
     }
     
-    .variant-remove {
-        width: 100%;
-        margin-top: 0;
+    .products-admin-grid {
+        grid-template-columns: 1fr;
     }
 }
