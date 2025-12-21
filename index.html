@@ -3,8 +3,295 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Phone Gesheft - Browser-Free Phones for Focused Living</title>
+    <title>The Phone Gesheft - Kosher Phones</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Enhanced animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Hero enhancements */
+        .hero {
+            background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+            position: relative;
+            overflow: hidden;
+            padding: 6rem 0;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.3;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.2);
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        .hero-content p {
+            font-size: 1.25rem;
+            color: rgba(255,255,255,0.95);
+            margin-bottom: 2.5rem;
+            line-height: 1.8;
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            animation: fadeInUp 0.8s ease-out 0.6s both;
+        }
+
+        /* Trust badges */
+        .trust-badges {
+            background: white;
+            padding: 4rem 0;
+        }
+
+        .badges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .badge {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .badge:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        .badge svg {
+            width: 48px;
+            height: 48px;
+            color: #667EEA;
+            flex-shrink: 0;
+        }
+
+        .badge div {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .badge strong {
+            font-size: 1.125rem;
+            color: #111827;
+        }
+
+        .badge span {
+            color: #6B7280;
+            font-size: 0.875rem;
+        }
+
+        /* Featured Products */
+        .featured-products {
+            padding: 5rem 0;
+            background: #F9FAFB;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #111827;
+            margin-bottom: 3rem;
+        }
+
+        /* Testimonials */
+        .testimonials-section {
+            padding: 5rem 0;
+            background: white;
+        }
+
+        .testimonials-slider {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 60px;
+        }
+
+        .testimonials-track {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .testimonial-card {
+            display: none;
+            padding: 3rem;
+            background: #F9FAFB;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .testimonial-card.active {
+            display: block;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        .stars {
+            color: #F59E0B;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .testimonial-text {
+            font-size: 1.125rem;
+            line-height: 1.8;
+            color: #374151;
+            margin-bottom: 2rem;
+            font-style: italic;
+        }
+
+        .testimonial-author strong {
+            display: block;
+            color: #111827;
+            font-size: 1.125rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .testimonial-author span {
+            color: #6B7280;
+            font-size: 0.875rem;
+        }
+
+        .slider-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 48px;
+            height: 48px;
+            background: white;
+            border: 2px solid #E5E7EB;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #667EEA;
+        }
+
+        .slider-btn:hover {
+            background: #667EEA;
+            color: white;
+            border-color: #667EEA;
+        }
+
+        .slider-btn.prev { left: 0; }
+        .slider-btn.next { right: 0; }
+
+        .slider-dots {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #D1D5DB;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .dot.active {
+            background: #667EEA;
+            width: 32px;
+            border-radius: 6px;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 5rem 0;
+            background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+            text-align: center;
+            color: white;
+        }
+
+        .cta-section h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .cta-section p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+            }
+
+            .badges-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .testimonials-slider {
+                padding: 0 20px;
+            }
+
+            .slider-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation -->
@@ -100,15 +387,15 @@
     <!-- Featured Products -->
     <section class="featured-products">
         <div class="container">
-            <h2 class="section-title">Featured Products</h2>
-            <div id="featured-grid" class="product-grid"></div>
+            <h2 class="section-title" style="text-align: center;">Featured Products</h2>
+            <div id="featured-products-grid" class="product-grid"></div>
         </div>
     </section>
 
     <!-- Testimonials -->
     <section class="testimonials-section">
         <div class="container">
-            <h2 class="section-title">What Our Customers Say</h2>
+            <h2 class="section-title" style="text-align: center;">What Our Customers Say</h2>
             
             <div class="testimonials-slider">
                 <button class="slider-btn prev" onclick="slideTestimonial(-1)">‹</button>
@@ -191,7 +478,7 @@
                                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
                                 <polyline points="22,6 12,13 2,6"/>
                             </svg>
-                            <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fe97909891be95918d969b8c92879095d09d9193">[email&#160;protected]</a>
+                            <a href="mailto:info@thephonegesheft.com">info@thephonegesheft.com</a>
                         </li>
                     </ul>
                 </div>
@@ -203,10 +490,44 @@
         </div>
     </footer>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/n
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <script src="app.js"></script>
-    <script>document.getElementById("copyright-year").textContent = new Date().getFullYear();</script>
+    <script>
+        document.getElementById("copyright-year").textContent = new Date().getFullYear();
+
+        // Testimonials slider functionality
+        let currentTestimonial = 0;
+        const testimonials = document.querySelectorAll('.testimonial-card');
+        const dotsContainer = document.getElementById('slider-dots');
+
+        // Create dots
+        testimonials.forEach((_, index) => {
+            const dot = document.createElement('div');
+            dot.className = 'dot' + (index === 0 ? ' active' : '');
+            dot.onclick = () => goToTestimonial(index);
+            dotsContainer.appendChild(dot);
+        });
+
+        function slideTestimonial(direction) {
+            currentTestimonial += direction;
+            if (currentTestimonial < 0) currentTestimonial = testimonials.length - 1;
+            if (currentTestimonial >= testimonials.length) currentTestimonial = 0;
+            goToTestimonial(currentTestimonial);
+        }
+
+        function goToTestimonial(index) {
+            currentTestimonial = index;
+            testimonials.forEach((card, i) => {
+                card.classList.toggle('active', i === index);
+            });
+            document.querySelectorAll('.dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === index);
+            });
+        }
+
+        // Auto-slide every 5 seconds
+        setInterval(() => slideTestimonial(1), 5000);
+    </script>
 </body>
 </html>
