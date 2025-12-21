@@ -423,11 +423,13 @@ window.toggleOrder = function(orderId) {
 };
 
 window.openShippingModal = function(orderId) {
+    console.log('Opening shipping modal for order:', orderId);
     selectedOrderId = orderId;
     document.getElementById('shipping-modal').classList.add('active');
 };
 
 window.closeShippingModal = function() {
+    console.log('Closing shipping modal');
     document.getElementById('shipping-modal').classList.remove('active');
     selectedOrderId = null;
     document.getElementById('tracking-number').value = '';
@@ -435,6 +437,13 @@ window.closeShippingModal = function() {
 };
 
 window.confirmShipping = async function() {
+    // VALIDATE ORDER ID EXISTS
+    if (!selectedOrderId) {
+        alert('❌ Error: No order selected');
+        console.error('selectedOrderId is null or undefined');
+        return;
+    }
+    
     const carrier = document.getElementById('shipping-carrier').value;
     const trackingNumber = document.getElementById('tracking-number').value;
     const estimatedDelivery = document.getElementById('estimated-delivery').value;
@@ -444,10 +453,16 @@ window.confirmShipping = async function() {
         return;
     }
     
+    console.log('Marking order as shipped:', selectedOrderId);
+    
     try {
         const order = allOrdersCache.find(o => o.id === selectedOrderId);
         
-        const { error } = await supabase
+        if (!order) {
+            throw new Error('Order not found in cache');
+        }
+        
+        const { data, error } = await supabase
             .from('orders')
             .update({
                 status: 'completed',
@@ -458,52 +473,115 @@ window.confirmShipping = async function() {
                 completion_notes: 'Shipped with tracking',
                 completed_at: new Date().toISOString()
             })
-            .eq('id', selectedOrderId);
+            .eq('id', selectedOrderId)
+            .select(); // CRITICAL: Return the updated row
         
-        if (error) throw error;
+        if (error) {
+            console.error('Supabase error:', error);
+            throw error;
+        }
+        
+        // VERIFY UPDATE WORKED
+        if (!data || data.length === 0) {
+            throw new Error('Update failed - no rows returned');
+        }
+        
+        console.log('Order shipped successfully:', data[0]);
+        
+        // UPDATE LOCAL CACHE IMMEDIATELY
+        const orderIndex = allOrdersCache.findIndex(o => o.id === selectedOrderId);
+        if (orderIndex !== -1) {
+            allOrdersCache[orderIndex] = data[0];
+        }
         
         await sendShippingEmail(order, carrier, trackingNumber, estimatedDelivery);
         
-        alert('✅ Order marked as complete and customer notified!');
+        alert('✅ Order #' + selectedOrderId + ' marked as complete and customer notified!');
         closeShippingModal();
-        await syncOrders();
+        
+        // Refresh display with current filter
+        let ordersToDisplay = allOrdersCache;
+        if (currentFilter !== 'all') {
+            ordersToDisplay = allOrdersCache.filter(o => o.status === currentFilter);
+        }
+        displayOrders(ordersToDisplay);
+        updateDashboardStats(allOrdersCache);
+        
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Shipping error:', error);
         alert('❌ Error: ' + error.message);
     }
 };
 
 window.openCompleteModal = function(orderId) {
+    console.log('Opening complete modal for order:', orderId);
     selectedOrderId = orderId;
     document.getElementById('complete-modal').classList.add('active');
 };
 
 window.closeCompleteModal = function() {
+    console.log('Closing complete modal');
     document.getElementById('complete-modal').classList.remove('active');
     selectedOrderId = null;
     document.getElementById('completion-notes').value = '';
 };
 
 window.confirmComplete = async function() {
+    // VALIDATE ORDER ID EXISTS
+    if (!selectedOrderId) {
+        alert('❌ Error: No order selected');
+        console.error('selectedOrderId is null or undefined');
+        return;
+    }
+    
     const notes = document.getElementById('completion-notes').value || 'Manually completed';
     
+    console.log('Marking order as complete:', selectedOrderId);
+    
     try {
-        const { error } = await supabase
+        const { data, error } = await supabase
             .from('orders')
             .update({
                 status: 'completed',
                 completion_notes: notes,
                 completed_at: new Date().toISOString()
             })
-            .eq('id', selectedOrderId);
+            .eq('id', selectedOrderId)
+            .select(); // CRITICAL: Return the updated row
         
-        if (error) throw error;
+        if (error) {
+            console.error('Supabase error:', error);
+            throw error;
+        }
         
-        alert('✅ Order marked as complete!');
+        // VERIFY UPDATE WORKED
+        if (!data || data.length === 0) {
+            throw new Error('Update failed - no rows returned');
+        }
+        
+        console.log('Order updated successfully:', data[0]);
+        
+        // UPDATE LOCAL CACHE IMMEDIATELY
+        const orderIndex = allOrdersCache.findIndex(o => o.id === selectedOrderId);
+        if (orderIndex !== -1) {
+            allOrdersCache[orderIndex].status = 'completed';
+            allOrdersCache[orderIndex].completion_notes = notes;
+            allOrdersCache[orderIndex].completed_at = new Date().toISOString();
+        }
+        
+        alert('✅ Order #' + selectedOrderId + ' marked as complete!');
         closeCompleteModal();
-        await syncOrders();
+        
+        // Refresh display with current filter
+        let ordersToDisplay = allOrdersCache;
+        if (currentFilter !== 'all') {
+            ordersToDisplay = allOrdersCache.filter(o => o.status === currentFilter);
+        }
+        displayOrders(ordersToDisplay);
+        updateDashboardStats(allOrdersCache);
+        
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Complete order error:', error);
         alert('❌ Error: ' + error.message);
     }
 };
