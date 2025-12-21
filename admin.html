@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - The Phone Gesheft</title>
+    <title>Admin Dashboard - The Phone Gesheft</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -20,102 +20,169 @@
                     <label>Password</label>
                     <input type="password" id="admin-password" required>
                 </div>
-                <div id="login-error" style="display: none; color: #EF4444; margin-bottom: 1rem;"></div>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+                <div id="login-error" style="color: #EF4444; margin-bottom: 1rem; display: none;"></div>
+                <button type="submit" class="btn btn-primary btn-full">Login</button>
             </form>
         </div>
     </div>
 
     <!-- Admin Dashboard -->
-    <div id="admin-dashboard" style="display: none;">
-        <div class="admin-header">
-            <div class="container">
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <h1>Admin Dashboard</h1>
-                    <button id="logout-btn" class="btn btn-secondary">Logout</button>
+    <div id="admin-dashboard" class="admin-layout" style="display: none;">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div style="padding: 0 1.5rem; margin-bottom: 2rem;">
+                <h2 style="color: white; margin: 0;">Admin Panel</h2>
+            </div>
+            <ul class="admin-menu">
+                <li><a href="#" class="menu-link active" data-section="dashboard">Dashboard</a></li>
+                <li><a href="#" class="menu-link" data-section="products">Products</a></li>
+                <li><a href="#" class="menu-link" data-section="featured">Featured Products</a></li>
+                <li><a href="#" class="menu-link" data-section="orders">Orders</a></li>
+                <li><a href="#" class="menu-link" data-section="categories">Categories</a></li>
+                <li><a href="#" class="menu-link" data-section="tags">Tags</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Header -->
+            <div class="admin-header">
+                <h1 id="section-title">Admin Dashboard</h1>
+                <button id="logout-btn" class="btn btn-secondary">Logout</button>
+            </div>
+
+            <!-- Dashboard Section -->
+            <div id="dashboard-section" class="admin-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Products</h3>
+                        <div class="stat-value" id="stat-products">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Orders</h3>
+                        <div class="stat-value" id="stat-orders">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Revenue</h3>
+                        <div class="stat-value" id="stat-revenue">$0.00</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Active Products</h3>
+                        <div class="stat-value" id="stat-active">0</div>
+                    </div>
+                </div>
+
+                <h2 style="margin: 2rem 0 1rem 0;">Recent Orders</h2>
+                <div id="recent-orders-table"></div>
+            </div>
+
+            <!-- Products Section -->
+            <div id="products-section" class="admin-section" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2 style="margin: 0;">Products</h2>
+                    <button id="add-product-btn" class="btn btn-primary">Add Product</button>
+                </div>
+                <div id="products-grid" class="products-admin-grid"></div>
+            </div>
+
+            <!-- Featured Products Section -->
+            <div id="featured-section" class="admin-section" style="display: none;">
+                <h2 style="margin-bottom: 2rem;">Featured Products Manager</h2>
+                <p style="margin-bottom: 2rem; color: #6B7280;">Select up to 3 products to feature on the homepage. Featured products will appear in order.</p>
+                <div id="featured-products-manager"></div>
+            </div>
+
+            <!-- Orders Section -->
+            <div id="orders-section" class="admin-section" style="display: none;">
+                <h2 style="margin-bottom: 2rem;">Orders</h2>
+                <div id="orders-table"></div>
+            </div>
+
+            <!-- Categories Section -->
+            <div id="categories-section" class="admin-section" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2 style="margin: 0;">Categories</h2>
+                    <button id="add-category-btn" class="btn btn-primary">Add Category</button>
+                </div>
+                <div id="categories-table"></div>
+            </div>
+
+            <!-- Tags Section -->
+            <div id="tags-section" class="admin-section" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2 style="margin: 0;">Tags</h2>
+                    <button id="add-tag-btn" class="btn btn-primary">Add Tag</button>
+                </div>
+                <div id="tags-table"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Product Modal -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Add Product</h2>
+                <button id="close-modal" class="modal-close">×</button>
+            </div>
+            <div style="padding: 2rem;">
+                <div class="form-group">
+                    <label>Product Name *</label>
+                    <input type="text" id="product-name" placeholder="Enter product name">
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="product-description" rows="4" placeholder="Product description"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Price *</label>
+                        <input type="number" id="product-price" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label>Stock</label>
+                        <input type="number" id="product-stock" placeholder="0">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="product-status">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox" id="track-inventory" checked>
+                        <span>Track Inventory</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>Product Images</label>
+                    <input type="file" id="product-images" accept="image/*" multiple style="display: none;">
+                    <button class="btn btn-secondary upload-images-btn" onclick="document.getElementById('product-images').click()">📤 Upload Images</button>
+                    <div id="images-preview" style="margin-top: 1rem; min-height: 100px; border: 2px dashed #E5E7EB; border-radius: 8px; padding: 1rem;">
+                        <p style="color: #6B7280; text-align: center;">No images uploaded</p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Product Variants (Optional)</label>
+                    <button type="button" id="add-variant-btn" class="btn btn-secondary">+ Add Variant</button>
+                    <div id="variants-container" style="margin-top: 1rem;">
+                        <p style="color: #6B7280;">No variants added</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <button id="save-product-btn" class="btn btn-primary btn-full">Save Product</button>
                 </div>
             </div>
-        </div>
-
-        <div class="admin-layout">
-            <aside class="admin-sidebar">
-                <nav class="admin-menu">
-                    <a href="#" class="menu-link active" data-section="dashboard">Dashboard</a>
-                    <a href="#" class="menu-link" data-section="products">Products</a>
-                    <a href="#" class="menu-link" data-section="featured">Featured Products</a>
-                    <a href="#" class="menu-link" data-section="orders">Orders</a>
-                    <a href="#" class="menu-link" data-section="categories">Categories</a>
-                    <a href="#" class="menu-link" data-section="tags">Tags</a>
-                </nav>
-            </aside>
-
-            <main class="admin-main">
-                <!-- Dashboard Section -->
-                <section id="dashboard-section" class="admin-section">
-                    <h2>Dashboard Overview</h2>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <h3>Total Products</h3>
-                            <div class="stat-value" id="stat-products">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <h3>Total Orders</h3>
-                            <div class="stat-value" id="stat-orders">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <h3>Revenue</h3>
-                            <div class="stat-value" id="stat-revenue">$0</div>
-                        </div>
-                        <div class="stat-card">
-                            <h3>Active Products</h3>
-                            <div class="stat-value" id="stat-active">0</div>
-                        </div>
-                    </div>
-
-                    <h3 style="margin-top: 2rem;">Recent Orders</h3>
-                    <div id="recent-orders-table"></div>
-                </section>
-
-                <!-- Products Section -->
-                <section id="products-section" class="admin-section" style="display: none;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                        <h2>Products</h2>
-                        <button id="add-product-btn" class="btn btn-primary">Add Product</button>
-                    </div>
-                    <div id="products-grid" class="products-admin-grid"></div>
-                </section>
-
-                <!-- Featured Products Section -->
-                <section id="featured-section" class="admin-section" style="display: none;">
-                    <h2>Featured Products Manager</h2>
-                    <p style="color: #6B7280; margin-bottom: 2rem;">Select up to 3 products to feature on the homepage. Featured products will appear in order.</p>
-                    <div id="featured-products-manager"></div>
-                </section>
-
-                <!-- Orders Section -->
-                <section id="orders-section" class="admin-section" style="display: none;">
-                    <h2>Orders</h2>
-                    <div id="orders-table"></div>
-                </section>
-
-                <!-- Categories Section -->
-                <section id="categories-section" class="admin-section" style="display: none;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                        <h2>Categories</h2>
-                        <button id="add-category-btn" class="btn btn-primary">Add Category</button>
-                    </div>
-                    <div id="categories-table"></div>
-                </section>
-
-                <!-- Tags Section -->
-                <section id="tags-section" class="admin-section" style="display: none;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                        <h2>Tags</h2>
-                        <button id="add-tag-btn" class="btn btn-primary">Add Tag</button>
-                    </div>
-                    <div id="tags-table"></div>
-                </section>
-            </main>
         </div>
     </div>
 
