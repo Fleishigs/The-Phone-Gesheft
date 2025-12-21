@@ -260,10 +260,8 @@
 
         .status-pending_shipment { background: #F3E8FF; color: #6B21A8; }
         .status-pending_shipment::before { animation: pulse 2s infinite; }
-        .status-shipped { background: #D1FAE5; color: #065F46; }
-        .status-completed { background: #DBEAFE; color: #1E40AF; }
+        .status-completed { background: #D1FAE5; color: #065F46; }
         .status-refunded { background: #FEE2E2; color: #991B1B; }
-        .status-cancelled { background: #FEF3C7; color: #92400E; }
 
         @keyframes pulse {
             0%, 100% { opacity: 1; }
@@ -772,9 +770,6 @@
                     <button class="filter-btn" onclick="filterOrders('pending_shipment')">
                         ⏳ Awaiting Shipment
                     </button>
-                    <button class="filter-btn" onclick="filterOrders('shipped')">
-                        🚚 Shipped
-                    </button>
                     <button class="filter-btn" onclick="filterOrders('completed')">
                         ✅ Completed
                     </button>
@@ -1100,10 +1095,8 @@
         function getStatusLabel(status) {
             const labels = {
                 'pending_shipment': 'AWAITING SHIPMENT',
-                'shipped': 'SHIPPED',
                 'completed': 'COMPLETED',
-                'refunded': 'REFUNDED',
-                'cancelled': 'CANCELLED'
+                'refunded': 'REFUNDED'
             };
             return labels[status] || 'AWAITING SHIPMENT';
         }
@@ -1258,10 +1251,6 @@
                                     <div style="color: #10B981; font-weight: 600; padding: 0.75rem; background: #D1FAE5; border-radius: 8px;">
                                         ✅ Completed on ${new Date(order.completed_at || order.created_at).toLocaleDateString()}
                                     </div>
-                                ` : order.status === 'shipped' ? `
-                                    <button class="action-btn btn-complete" onclick="openCompleteModal(${order.id})">
-                                        ✅ Mark as Complete
-                                    </button>
                                 ` : `
                                     <button class="action-btn btn-ship" onclick="openShippingModal(${order.id})">
                                         📦 Mark as Shipped
@@ -1319,12 +1308,13 @@
                 const { error } = await supabase
                     .from('orders')
                     .update({
-                        status: 'shipped',
+                        status: 'completed',
                         shipping_carrier: carrier,
                         tracking_number: trackingNumber,
                         tracking_url: generateTrackingUrl(carrier, trackingNumber),
                         estimated_delivery: estimatedDelivery || null,
-                        shipped_at: new Date().toISOString()
+                        completion_notes: 'Shipped with tracking',
+                        completed_at: new Date().toISOString()
                     })
                     .eq('id', selectedOrderId);
                 
@@ -1332,7 +1322,7 @@
                 
                 await sendShippingEmail(order, carrier, trackingNumber, estimatedDelivery);
                 
-                alert('✅ Order marked as shipped and customer notified!');
+                alert('✅ Order marked as complete and customer notified!');
                 closeShippingModal();
                 await syncOrders();
             } catch (error) {
