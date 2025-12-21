@@ -103,7 +103,7 @@ function goToSection(section) {
 // ============================================
 async function loadDashboard() {
     try {
-        await syncOrders(); // Load orders first
+        await syncOrders(); // This handles its own loading overlay
         
         const { data: products } = await supabase.from("products").select("*").eq("deleted", false);
         allProducts = products || [];
@@ -170,14 +170,16 @@ function stopAutoSync() {
 }
 
 async function syncOrders() {
-    const indicator = document.getElementById('sync-indicator');
-    const syncText = document.getElementById('sync-text');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const loadingLogo = document.getElementById('loading-logo');
+    const loadingSubtext = document.getElementById('loading-subtext');
     const syncBtn = document.getElementById('sync-btn-text');
     
-    if (indicator) {
-        indicator.style.display = 'flex';
-        indicator.className = 'sync-indicator syncing';
-        syncText.textContent = 'Syncing...';
+    if (loadingOverlay) {
+        loadingOverlay.style.display = 'flex';
+        loadingSubtext.textContent = 'Syncing orders...';
+        // Start dark
+        loadingLogo.style.filter = 'brightness(0.3)';
     }
     if (syncBtn) syncBtn.innerHTML = '<span class="loading-spinner"></span> Syncing...';
     
@@ -190,6 +192,10 @@ async function syncOrders() {
         if (error) throw error;
         
         allOrdersCache = orders || [];
+        
+        // Brighten logo a bit
+        if (loadingLogo) loadingLogo.style.filter = 'brightness(0.5)';
+        if (loadingSubtext) loadingSubtext.textContent = 'Checking refunds...';
         
         // Check refunds
         for (let order of allOrdersCache) {
@@ -219,6 +225,10 @@ async function syncOrders() {
             }
         }
         
+        // Logo gets brighter
+        if (loadingLogo) loadingLogo.style.filter = 'brightness(0.8)';
+        if (loadingSubtext) loadingSubtext.textContent = 'Updating display...';
+        
         // Apply current filter before displaying
         let ordersToDisplay = allOrdersCache;
         if (currentFilter !== 'all') {
@@ -228,21 +238,36 @@ async function syncOrders() {
         displayOrders(ordersToDisplay);
         updateDashboardStats(allOrdersCache);
         
-        if (indicator) {
-            indicator.className = 'sync-indicator synced';
-            syncText.textContent = 'Synced';
-            setTimeout(() => indicator.style.display = 'none', 3000);
-        }
+        // Logo fully bright - SUCCESS!
+        if (loadingLogo) loadingLogo.style.filter = 'brightness(1.0)';
+        if (loadingSubtext) loadingSubtext.textContent = 'Complete!';
+        
+        // Hide after brief success show
+        setTimeout(() => {
+            if (loadingOverlay) loadingOverlay.style.display = 'none';
+        }, 500);
+        
         if (syncBtn) syncBtn.textContent = '🔄 Sync Now';
         
     } catch (error) {
         console.error('Sync error:', error);
-        if (indicator) {
-            indicator.className = 'sync-indicator';
-            indicator.style.background = '#FEE2E2';
-            indicator.style.color = '#991B1B';
-            syncText.textContent = 'Sync failed';
+        
+        // Show error state
+        if (loadingLogo) {
+            loadingLogo.style.filter = 'brightness(1.0) hue-rotate(0deg) saturate(100%) contrast(100%)';
         }
+        if (loadingSubtext) {
+            loadingSubtext.textContent = 'Sync failed - trying again...';
+            loadingSubtext.style.color = '#EF4444';
+        }
+        
+        setTimeout(() => {
+            if (loadingOverlay) loadingOverlay.style.display = 'none';
+            if (loadingSubtext) {
+                loadingSubtext.style.color = 'rgba(255,255,255,0.7)';
+            }
+        }, 2000);
+        
         if (syncBtn) syncBtn.textContent = '🔄 Sync Now';
     }
 }
