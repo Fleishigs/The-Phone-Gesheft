@@ -6,246 +6,92 @@
     <title>Admin Dashboard - The Phone Gesheft</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        /* Beautiful Toggle Switch */
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px;
+        /* Order Management Styles */
+        .order-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
         }
-        
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #E5E7EB;
         }
+        .order-status {
+            padding: 0.5rem 1rem;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        .status-completed { background: #DBEAFE; color: #1E40AF; }
+        .status-shipped { background: #D1FAE5; color: #065F46; }
+        .status-cancelled { background: #FEE2E2; color: #991B1B; }
         
-        .toggle-slider {
-            position: absolute;
+        .order-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        .detail-section {
+            background: #F9FAFB;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        .detail-section h4 {
+            margin: 0 0 0.75rem 0;
+            color: #374151;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .order-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: none;
             cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+        .btn-ship { background: #3B82F6; color: white; }
+        .btn-ship:hover { background: #2563EB; }
+        
+        /* Shipping Modal */
+        .modal-shipping {
+            display: none;
+            position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-        
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        
-        .toggle-switch input:checked + .toggle-slider {
-            background-color: #3B82F6;
-        }
-        
-        .toggle-switch input:checked + .toggle-slider:before {
-            transform: translateX(26px);
-        }
-
-        /* Beautiful Image Upload Area */
-        .image-upload-zone {
-            border: 3px dashed #D1D5DB;
-            border-radius: 12px;
-            padding: 3rem;
-            text-align: center;
-            background: #F9FAFB;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-        
-        .image-upload-zone:hover {
-            border-color: #3B82F6;
-            background: #EFF6FF;
-        }
-        
-        .image-upload-zone.dragover {
-            border-color: #3B82F6;
-            background: #DBEAFE;
-        }
-
-        /* Image Preview Grid */
-        .images-preview-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        
-        .image-preview-item {
-            position: relative;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 3px solid transparent;
-            transition: all 0.2s;
-        }
-        
-        .image-preview-item.primary {
-            border-color: #3B82F6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-        }
-        
-        .image-preview-item img {
-            width: 100%;
-            height: 120px;
-            object-fit: cover;
-            display: block;
-        }
-        
-        .image-remove-btn {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: #EF4444;
-            color: white;
-            border: 2px solid white;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 18px;
-            line-height: 1;
-            display: flex;
+            background: rgba(0,0,0,0.6);
+            z-index: 10000;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
         }
-        
-        .image-remove-btn:hover {
-            background: #DC2626;
-            transform: scale(1.1);
+        .modal-shipping.active {
+            display: flex;
         }
-        
-        .image-primary-badge {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(59, 130, 246, 0.95), transparent);
-            color: white;
-            padding: 0.5rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-align: center;
-        }
-        
-        .image-set-primary-btn {
-            position: absolute;
-            bottom: 4px;
-            left: 4px;
-            right: 4px;
-            background: rgba(255, 255, 255, 0.95);
-            color: #3B82F6;
-            border: none;
-            padding: 0.25rem;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .image-set-primary-btn:hover {
-            background: #3B82F6;
-            color: white;
-        }
-
-        /* Beautiful Variant Cards */
-        .variant-card {
-            background: #F9FAFB;
-            border: 2px solid #E5E7EB;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            transition: all 0.2s;
-        }
-        
-        .variant-card:hover {
-            border-color: #3B82F6;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
-        }
-        
-        .variant-inputs {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-        
-        .variant-remove-btn {
-            background: #FEE2E2;
-            color: #DC2626;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .variant-remove-btn:hover {
-            background: #EF4444;
-            color: white;
-        }
-
-        /* Modal Improvements */
-        .modal-content {
-            max-width: 800px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        
-        .modal-section {
+        .modal-shipping-content {
             background: white;
             border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid #E5E7EB;
-        }
-        
-        .modal-section-title {
-            font-size: 1.125rem;
-            font-weight: 700;
-            color: #111827;
-            margin: 0 0 1rem 0;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .form-group label {
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 0.5rem;
-        }
-
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            border: 2px solid #E5E7EB;
-            transition: all 0.2s;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            border-color: #3B82F6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
         }
     </style>
 </head>
@@ -278,9 +124,9 @@
             </div>
             <ul class="admin-menu">
                 <li><a href="#" class="menu-link active" data-section="dashboard">Dashboard</a></li>
+                <li><a href="#" class="menu-link" data-section="orders">Orders</a></li>
                 <li><a href="#" class="menu-link" data-section="products">Products</a></li>
                 <li><a href="#" class="menu-link" data-section="featured">Featured Products</a></li>
-                <li><a href="#" class="menu-link" data-section="orders">Orders</a></li>
                 <li><a href="#" class="menu-link" data-section="categories">Categories</a></li>
                 <li><a href="#" class="menu-link" data-section="tags">Tags</a></li>
             </ul>
@@ -319,6 +165,12 @@
                 <div id="recent-orders-table"></div>
             </div>
 
+            <!-- ORDERS SECTION (NEW!) -->
+            <div id="orders-section" class="admin-section" style="display: none;">
+                <h2 style="margin-bottom: 2rem;">Order Management</h2>
+                <div id="orders-container"></div>
+            </div>
+
             <!-- Products Section -->
             <div id="products-section" class="admin-section" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
@@ -333,12 +185,6 @@
                 <h2 style="margin-bottom: 2rem;">Featured Products Manager</h2>
                 <p style="margin-bottom: 2rem; color: #6B7280;">Select up to 3 products to feature on the homepage. Featured products will appear in order.</p>
                 <div id="featured-products-manager"></div>
-            </div>
-
-            <!-- Orders Section -->
-            <div id="orders-section" class="admin-section" style="display: none;">
-                <h2 style="margin-bottom: 2rem;">Orders</h2>
-                <div id="orders-table"></div>
             </div>
 
             <!-- Categories Section -->
@@ -361,7 +207,40 @@
         </main>
     </div>
 
-    <!-- BEAUTIFUL Product Modal -->
+    <!-- Shipping Modal -->
+    <div id="shipping-modal" class="modal-shipping">
+        <div class="modal-shipping-content">
+            <h2 style="margin-bottom: 1.5rem;">Mark Order as Shipped</h2>
+            
+            <div class="form-group">
+                <label>Shipping Carrier</label>
+                <select id="shipping-carrier">
+                    <option value="USPS">USPS</option>
+                    <option value="UPS">UPS</option>
+                    <option value="FedEx">FedEx</option>
+                    <option value="DHL">DHL</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Tracking Number *</label>
+                <input type="text" id="tracking-number" placeholder="Enter tracking number" required>
+            </div>
+
+            <div class="form-group">
+                <label>Estimated Delivery (optional)</label>
+                <input type="date" id="estimated-delivery">
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button class="btn btn-primary" onclick="confirmShipping()">Mark as Shipped & Email Customer</button>
+                <button class="btn btn-secondary" onclick="closeShippingModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Modal (keeping existing one) -->
     <div id="product-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -458,42 +337,215 @@
     <script src="admin.js"></script>
     
     <script>
-        // Toggle stock field visibility
-        document.getElementById('track-inventory')?.addEventListener('change', function() {
-            const stockField = document.getElementById('stock-field');
-            if (stockField) {
-                stockField.style.display = this.checked ? 'block' : 'none';
+        // ORDER MANAGEMENT CODE
+        let selectedOrderId = null;
+
+        async function loadOrders() {
+            try {
+                const { data: orders, error } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                displayOrders(orders || []);
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                alert('Error loading orders: ' + error.message);
             }
-        });
-
-        // Drag and drop for images
-        const uploadZone = document.querySelector('.image-upload-zone');
-        if (uploadZone) {
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                uploadZone.addEventListener(eventName, preventDefaults, false);
-            });
-
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-
-            ['dragenter', 'dragover'].forEach(eventName => {
-                uploadZone.addEventListener(eventName, () => uploadZone.classList.add('dragover'), false);
-            });
-
-            ['dragleave', 'drop'].forEach(eventName => {
-                uploadZone.addEventListener(eventName, () => uploadZone.classList.remove('dragover'), false);
-            });
-
-            uploadZone.addEventListener('drop', function(e) {
-                const dt = e.dataTransfer;
-                const files = dt.files;
-                document.getElementById('product-images').files = files;
-                const event = new Event('change', { bubbles: true });
-                document.getElementById('product-images').dispatchEvent(event);
-            });
         }
+
+        function displayOrders(orders) {
+            const container = document.getElementById('orders-container');
+            
+            if (orders.length === 0) {
+                container.innerHTML = '<div style="background: white; padding: 3rem; text-align: center; border-radius: 12px;">No orders yet</div>';
+                return;
+            }
+            
+            container.innerHTML = orders.map(order => {
+                const address = order.shipping_address || {};
+                const statusClass = `status-${order.status || 'completed'}`;
+                
+                return `
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div>
+                                <h3 style="margin: 0 0 0.5rem 0;">Order #${order.id}</h3>
+                                <p style="margin: 0; color: #6B7280; font-size: 0.875rem;">
+                                    ${new Date(order.created_at).toLocaleString()}
+                                </p>
+                            </div>
+                            <span class="order-status ${statusClass}">
+                                ${(order.status || 'completed').toUpperCase()}
+                            </span>
+                        </div>
+                        
+                        <div class="order-details-grid">
+                            <div class="detail-section">
+                                <h4>📦 SHIP TO</h4>
+                                <p style="margin: 0; font-weight: 600;">
+                                    ${address.name || order.shipping_name || 'N/A'}<br>
+                                    ${address.line1 || 'No address'}<br>
+                                    ${address.line2 ? address.line2 + '<br>' : ''}
+                                    ${address.city || ''}, ${address.state || ''} ${address.postal_code || ''}<br>
+                                    ${address.country || ''}
+                                </p>
+                            </div>
+                            
+                            <div class="detail-section">
+                                <h4>👤 Customer</h4>
+                                <p style="margin: 0;">
+                                    <strong>${order.customer_name}</strong><br>
+                                    ${order.customer_email}<br>
+                                    ${order.customer_phone || 'No phone'}
+                                </p>
+                            </div>
+                            
+                            <div class="detail-section">
+                                <h4>📱 Product</h4>
+                                <p style="margin: 0;">
+                                    <strong>${order.product_name}</strong><br>
+                                    Qty: ${order.quantity}<br>
+                                    Price: $${order.product_price.toFixed(2)}<br>
+                                    <strong style="color: #3B82F6;">Total: $${order.total_price.toFixed(2)}</strong>
+                                </p>
+                            </div>
+                            
+                            ${order.tracking_number ? `
+                                <div class="detail-section">
+                                    <h4>📬 Tracking</h4>
+                                    <p style="margin: 0;">
+                                        <strong>Carrier:</strong> ${order.shipping_carrier}<br>
+                                        <strong>Tracking:</strong> ${order.tracking_number}<br>
+                                        ${order.estimated_delivery ? `<strong>Est. Delivery:</strong> ${new Date(order.estimated_delivery).toLocaleDateString()}<br>` : ''}
+                                    </p>
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="order-actions">
+                            ${order.status !== 'shipped' ? `
+                                <button class="action-btn btn-ship" onclick="openShippingModal(${order.id})">
+                                    📦 Mark as Shipped
+                                </button>
+                            ` : `
+                                <div style="color: #10B981; font-weight: 600;">✓ Shipped on ${new Date(order.shipped_at).toLocaleDateString()}</div>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openShippingModal(orderId) {
+            selectedOrderId = orderId;
+            document.getElementById('shipping-modal').classList.add('active');
+        }
+
+        function closeShippingModal() {
+            document.getElementById('shipping-modal').classList.remove('active');
+            selectedOrderId = null;
+            document.getElementById('tracking-number').value = '';
+            document.getElementById('estimated-delivery').value = '';
+        }
+
+        async function confirmShipping() {
+            const carrier = document.getElementById('shipping-carrier').value;
+            const trackingNumber = document.getElementById('tracking-number').value;
+            const estimatedDelivery = document.getElementById('estimated-delivery').value;
+            
+            if (!trackingNumber) {
+                alert('Please enter a tracking number');
+                return;
+            }
+            
+            try {
+                // Get the order first
+                const { data: order } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .eq('id', selectedOrderId)
+                    .single();
+                
+                // Update order in database
+                const { error } = await supabase
+                    .from('orders')
+                    .update({
+                        status: 'shipped',
+                        shipping_carrier: carrier,
+                        tracking_number: trackingNumber,
+                        tracking_url: generateTrackingUrl(carrier, trackingNumber),
+                        estimated_delivery: estimatedDelivery || null,
+                        shipped_at: new Date().toISOString()
+                    })
+                    .eq('id', selectedOrderId);
+                
+                if (error) throw error;
+                
+                // Send shipping confirmation email
+                await sendShippingEmail(order, carrier, trackingNumber, estimatedDelivery);
+                
+                alert('Order marked as shipped and customer notified!');
+                closeShippingModal();
+                await loadOrders();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error updating order: ' + error.message);
+            }
+        }
+
+        async function sendShippingEmail(order, carrier, trackingNumber, estimatedDelivery) {
+            const response = await fetch('/.netlify/functions/send-shipping-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    order: {
+                        ...order,
+                        tracking_number: trackingNumber,
+                        tracking_url: generateTrackingUrl(carrier, trackingNumber),
+                        shipping_carrier: carrier,
+                        estimated_delivery: estimatedDelivery
+                    }
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to send shipping email');
+            }
+        }
+
+        function generateTrackingUrl(carrier, trackingNumber) {
+            const urls = {
+                'USPS': `https://tools.usps.com/go/TrackConfirmAction?tLabels=${trackingNumber}`,
+                'UPS': `https://www.ups.com/track?tracknum=${trackingNumber}`,
+                'FedEx': `https://www.fedex.com/fedextrack/?trknbr=${trackingNumber}`,
+                'DHL': `https://www.dhl.com/en/express/tracking.html?AWB=${trackingNumber}`
+            };
+            return urls[carrier] || `#`;
+        }
+
+        // Update menu click handler to include orders
+        const originalMenuHandler = document.querySelectorAll(".menu-link");
+        document.querySelectorAll(".menu-link").forEach(link => {
+            link.addEventListener("click", async (e) => {
+                e.preventDefault();
+                const section = e.target.dataset.section;
+                
+                document.querySelectorAll(".menu-link").forEach(l => l.classList.remove("active"));
+                e.target.classList.add("active");
+                document.querySelectorAll(".admin-section").forEach(s => s.style.display = "none");
+                document.getElementById(section + "-section").style.display = "block";
+                
+                if (section === "dashboard") await loadDashboard();
+                else if (section === "orders") await loadOrders(); // NEW!
+                else if (section === "products") await loadProducts();
+                else if (section === "featured") await loadFeaturedManager();
+                else if (section === "categories") await loadCategories();
+                else if (section === "tags") await loadTags();
+            });
+        });
     </script>
 </body>
 </html>
