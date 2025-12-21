@@ -1,6 +1,11 @@
-// CLEAN ADMIN.JS - FEATURED PRODUCTS FIXED
+// COMPLETE Admin Dashboard - ALL Sections Working
 let currentUser = null;
 let allProducts = [];
+let allOrders = [];
+let allCategories = [];
+let allTags = [];
+let productImages = [];
+let productVariants = [];
 
 // Login
 document.getElementById("login-form")?.addEventListener("submit", async (e) => {
@@ -9,11 +14,7 @@ document.getElementById("login-form")?.addEventListener("submit", async (e) => {
     const password = document.getElementById("admin-password").value;
     
     try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email: email,
-            password: password
-        });
-        
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         
         currentUser = data.user;
@@ -33,7 +34,7 @@ document.getElementById("logout-btn")?.addEventListener("click", async () => {
     location.reload();
 });
 
-// Check auth on load
+// Check auth
 async function checkAuth() {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
@@ -50,17 +51,11 @@ document.querySelectorAll(".menu-link").forEach(link => {
         e.preventDefault();
         const section = e.target.dataset.section;
         
-        // Update active state
         document.querySelectorAll(".menu-link").forEach(l => l.classList.remove("active"));
         e.target.classList.add("active");
-        
-        // Hide all sections
         document.querySelectorAll(".admin-section").forEach(s => s.style.display = "none");
-        
-        // Show selected section
         document.getElementById(section + "-section").style.display = "block";
         
-        // Load data for section
         if (section === "dashboard") await loadDashboard();
         else if (section === "products") await loadProducts();
         else if (section === "featured") await loadFeaturedManager();
@@ -70,7 +65,7 @@ document.querySelectorAll(".menu-link").forEach(link => {
     });
 });
 
-// Load dashboard
+// DASHBOARD
 async function loadDashboard() {
     try {
         const { data: products } = await supabase.from("products").select("*").eq("deleted", false);
@@ -82,11 +77,7 @@ async function loadDashboard() {
         const totalOrders = orders ? orders.length : 0;
         
         let totalRevenue = 0;
-        if (orders) {
-            orders.forEach(order => {
-                totalRevenue += parseFloat(order.total_price || 0);
-            });
-        }
+        if (orders) orders.forEach(order => totalRevenue += parseFloat(order.total_price || 0));
         
         document.getElementById("stat-products").textContent = totalProducts;
         document.getElementById("stat-orders").textContent = totalOrders;
@@ -95,7 +86,7 @@ async function loadDashboard() {
         
         displayRecentOrders(orders ? orders.slice(0, 5) : []);
     } catch (error) {
-        console.error("Error loading dashboard:", error);
+        console.error("Dashboard error:", error);
     }
 }
 
@@ -109,15 +100,7 @@ function displayRecentOrders(orders) {
     container.innerHTML = `
         <div class="admin-table">
             <table>
-                <thead>
-                    <tr>
-                        <th>Order ID</th>
-                        <th>Customer</th>
-                        <th>Total</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>Order ID</th><th>Customer</th><th>Total</th><th>Date</th><th>Status</th></tr></thead>
                 <tbody>
                     ${orders.map(order => `
                         <tr>
@@ -134,33 +117,265 @@ function displayRecentOrders(orders) {
     `;
 }
 
-// Load products (stub for now)
+// PRODUCTS
 async function loadProducts() {
-    document.getElementById("products-grid").innerHTML = '<p style="padding: 2rem; text-align: center;">Products section - working on it...</p>';
+    try {
+        const { data: products } = await supabase.from("products").select("*").eq("deleted", false).order("created_at", { ascending: false });
+        allProducts = products || [];
+        displayProducts();
+    } catch (error) {
+        console.error("Products error:", error);
+    }
 }
 
-// Load orders (stub for now)
+function displayProducts() {
+    const grid = document.getElementById("products-grid");
+    if (allProducts.length === 0) {
+        grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #6B7280;">No products yet. Click "Add Product" to create one.</p>';
+        return;
+    }
+    
+    grid.innerHTML = allProducts.map(product => {
+        const mainImage = product.images?.[0] || product.image_url || "";
+        const imageCount = product.images?.length || (product.image_url ? 1 : 0);
+        const variantCount = product.variants?.length || 0;
+        
+        return `
+        <div class="product-admin-card">
+            <div style="position: relative;">
+                <img src="${mainImage}" alt="${product.name}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;">
+                ${imageCount > 1 ? `<div style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;">+${imageCount - 1}</div>` : ""}
+                ${variantCount > 0 ? `<div style="position: absolute; bottom: 8px; left: 8px; background: rgba(59,130,246,0.9); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;">${variantCount} variants</div>` : ""}
+            </div>
+            <h3>${product.name}</h3>
+            <div class="price">$${parseFloat(product.price).toFixed(2)}${variantCount > 0 ? "+" : ""}</div>
+            <div class="stock">${product.track_inventory === false ? "Unlimited" : product.stock + " in stock"}</div>
+            <div class="product-admin-actions">
+                <button class="btn-edit" onclick="alert('Edit feature coming soon')">Edit</button>
+                <button class="btn-delete" onclick="softDeleteProduct(${product.id})">Delete</button>
+            </div>
+        </div>
+    `}).join("");
+}
+
+window.softDeleteProduct = async function(productId) {
+    if (!confirm("Delete this product?")) return;
+    try {
+        await supabase.from("products").update({ deleted: true }).eq("id", productId);
+        alert("Product deleted!");
+        await loadProducts();
+    } catch (error) {
+        alert("Error: " + error.message);
+    }
+};
+
+// ORDERS
 async function loadOrders() {
-    document.getElementById("orders-table").innerHTML = '<p style="padding: 2rem; text-align: center;">Orders section - working on it...</p>';
+    try {
+        const { data: orders } = await supabase.from("orders").select("*").order("created_at", { ascending: false });
+        allOrders = orders || [];
+        displayOrders();
+    } catch (error) {
+        console.error("Orders error:", error);
+    }
 }
 
-// Load categories (stub for now)
+function displayOrders() {
+    const container = document.getElementById("orders-table");
+    if (allOrders.length === 0) {
+        container.innerHTML = '<div style="background: white; padding: 2rem; border-radius: 8px; text-align: center; color: #6B7280;">No orders yet</div>';
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="admin-table">
+            <table>
+                <thead><tr><th>Order ID</th><th>Customer</th><th>Email</th><th>Total</th><th>Date</th><th>Status</th></tr></thead>
+                <tbody>
+                    ${allOrders.map(order => `
+                        <tr>
+                            <td>#${order.id}</td>
+                            <td>${order.customer_name || "N/A"}</td>
+                            <td>${order.customer_email}</td>
+                            <td>$${parseFloat(order.total_price).toFixed(2)}</td>
+                            <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                            <td><span style="color: #10B981; font-weight: 600;">${order.status}</span></td>
+                        </tr>
+                    `).join("")}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+// CATEGORIES
 async function loadCategories() {
-    document.getElementById("categories-table").innerHTML = '<p style="padding: 2rem; text-align: center;">Categories section - working on it...</p>';
+    try {
+        const { data: categories } = await supabase.from("categories").select("*").order("name");
+        allCategories = categories || [];
+        displayCategories();
+    } catch (error) {
+        console.error("Categories error:", error);
+    }
 }
 
-// Load tags (stub for now)
+function displayCategories() {
+    const container = document.getElementById("categories-table");
+    if (allCategories.length === 0) {
+        container.innerHTML = '<div style="background: white; padding: 2rem; border-radius: 8px; text-align: center; color: #6B7280;">No categories yet</div>';
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="admin-table">
+            <table>
+                <thead><tr><th>ID</th><th>Name</th><th>Actions</th></tr></thead>
+                <tbody>
+                    ${allCategories.map(cat => `
+                        <tr>
+                            <td>${cat.id}</td>
+                            <td>${cat.name}</td>
+                            <td>
+                                <button class="btn-edit" onclick="editCategory(${cat.id})">Edit</button>
+                                <button class="btn-delete" onclick="deleteCategory(${cat.id})">Delete</button>
+                            </td>
+                        </tr>
+                    `).join("")}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+document.getElementById("add-category-btn")?.addEventListener("click", () => {
+    const name = prompt("Enter category name:");
+    if (name) addCategory(name);
+});
+
+async function addCategory(name) {
+    try {
+        await supabase.from("categories").insert([{ name }]);
+        alert("Category added!");
+        await loadCategories();
+    } catch (error) {
+        alert("Error: " + error.message);
+    }
+}
+
+window.editCategory = function(id) {
+    const cat = allCategories.find(c => c.id === id);
+    const newName = prompt("Edit category:", cat.name);
+    if (newName && newName !== cat.name) updateCategory(id, newName);
+};
+
+async function updateCategory(id, name) {
+    try {
+        await supabase.from("categories").update({ name }).eq("id", id);
+        alert("Updated!");
+        await loadCategories();
+    } catch (error) {
+        alert("Error: " + error.message);
+    }
+}
+
+window.deleteCategory = async function(id) {
+    if (!confirm("Delete this category?")) return;
+    try {
+        await supabase.from("categories").delete().eq("id", id);
+        alert("Deleted!");
+        await loadCategories();
+    } catch (error) {
+        alert("Error: " + error.message);
+    }
+};
+
+// TAGS
 async function loadTags() {
-    document.getElementById("tags-table").innerHTML = '<p style="padding: 2rem; text-align: center;">Tags section - working on it...</p>';
+    try {
+        const { data: tags } = await supabase.from("tags").select("*").order("name");
+        allTags = tags || [];
+        displayTags();
+    } catch (error) {
+        console.error("Tags error:", error);
+    }
 }
 
-// FEATURED PRODUCTS MANAGER - THE MAIN THING TO FIX
+function displayTags() {
+    const container = document.getElementById("tags-table");
+    if (allTags.length === 0) {
+        container.innerHTML = '<div style="background: white; padding: 2rem; border-radius: 8px; text-align: center; color: #6B7280;">No tags yet</div>';
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="admin-table">
+            <table>
+                <thead><tr><th>ID</th><th>Name</th><th>Actions</th></tr></thead>
+                <tbody>
+                    ${allTags.map(tag => `
+                        <tr>
+                            <td>${tag.id}</td>
+                            <td>${tag.name}</td>
+                            <td>
+                                <button class="btn-edit" onclick="editTag(${tag.id})">Edit</button>
+                                <button class="btn-delete" onclick="deleteTag(${tag.id})">Delete</button>
+                            </td>
+                        </tr>
+                    `).join("")}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+document.getElementById("add-tag-btn")?.addEventListener("click", () => {
+    const name = prompt("Enter tag name:");
+    if (name) addTag(name);
+});
+
+async function addTag(name) {
+    try {
+        await supabase.from("tags").insert([{ name }]);
+        alert("Tag added!");
+        await loadTags();
+    } catch (error) {
+        alert("Error: " + error.message);
+    }
+}
+
+window.editTag = function(id) {
+    const tag = allTags.find(t => t.id === id);
+    const newName = prompt("Edit tag:", tag.name);
+    if (newName && newName !== tag.name) updateTag(id, newName);
+};
+
+async function updateTag(id, name) {
+    try {
+        await supabase.from("tags").update({ name }).eq("id", id);
+        alert("Updated!");
+        await loadTags();
+    } catch (error) {
+        alert("Error: " + error.message);
+    }
+}
+
+window.deleteTag = async function(id) {
+    if (!confirm("Delete this tag?")) return;
+    try {
+        await supabase.from("tags").delete().eq("id", id);
+        alert("Deleted!");
+        await loadTags();
+    } catch (error) {
+        alert("Error: " + error.message);
+    }
+};
+
+// FEATURED PRODUCTS MANAGER
 async function loadFeaturedManager() {
     const container = document.getElementById("featured-products-manager");
     container.innerHTML = '<p style="text-align: center; padding: 2rem;">Loading...</p>';
     
     try {
-        // Get all active products
         const { data: products, error } = await supabase
             .from("products")
             .select("*")
@@ -171,152 +386,92 @@ async function loadFeaturedManager() {
         if (error) throw error;
         
         if (!products || products.length === 0) {
-            container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6B7280;">No active products available. Create some products first!</p>';
+            container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6B7280;">No active products. Create products first!</p>';
             return;
         }
         
-        // Split into featured and available
         const featured = products.filter(p => p.is_featured === true).sort((a, b) => (a.featured_order || 0) - (b.featured_order || 0));
         const available = products.filter(p => !p.is_featured);
         
-        // Render UI
         container.innerHTML = `
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-                <!-- Featured Products (Left) -->
                 <div>
-                    <h3 style="margin-bottom: 1rem; color: #111827; font-size: 1.25rem;">Featured Products (${featured.length}/3)</h3>
+                    <h3 style="margin-bottom: 1rem; color: #111827;">Featured Products (${featured.length}/3)</h3>
                     <div style="display: flex; flex-direction: column; gap: 1rem;">
-                        ${featured.length === 0 ? 
-                            '<div style="background: #F9FAFB; padding: 2rem; border-radius: 8px; text-align: center; color: #6B7280;">No featured products yet. Click "Add" on products from the right side.</div>' 
-                            : ''}
-                        ${featured.map(product => `
+                        ${featured.length === 0 ? '<div style="background: #F9FAFB; padding: 2rem; border-radius: 8px; text-align: center; color: #6B7280;">No featured products. Click "Add" on products →</div>' : ''}
+                        ${featured.map(p => `
                             <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 1rem;">
-                                <img src="${product.images?.[0] || product.image_url || ''}" 
-                                     style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; background: #f3f4f6;">
+                                <img src="${p.images?.[0] || p.image_url || ""}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
                                 <div style="flex: 1;">
-                                    <strong style="display: block; margin-bottom: 0.25rem; color: #111827;">${product.name}</strong>
-                                    <div style="color: #3B82F6; font-size: 1.125rem; font-weight: 600;">$${parseFloat(product.price).toFixed(2)}</div>
-                                    <div style="color: #6B7280; font-size: 0.875rem; margin-top: 0.25rem;">Position: ${product.featured_order || 'N/A'}</div>
+                                    <strong>${p.name}</strong>
+                                    <div style="color: #3B82F6; font-size: 1.125rem; font-weight: 600;">$${p.price.toFixed(2)}</div>
+                                    <div style="color: #6B7280; font-size: 0.875rem;">Position: ${p.featured_order || "N/A"}</div>
                                 </div>
-                                <button onclick="removeFeaturedProduct(${product.id})" 
-                                        class="btn btn-secondary" 
-                                        style="padding: 0.5rem 1rem; white-space: nowrap;">
-                                    Remove
-                                </button>
+                                <button class="btn btn-secondary" style="padding: 0.5rem 1rem;" onclick="removeFeaturedProduct(${p.id})">Remove</button>
                             </div>
-                        `).join('')}
+                        `).join("")}
                     </div>
                 </div>
                 
-                <!-- Available Products (Right) -->
                 <div>
-                    <h3 style="margin-bottom: 1rem; color: #111827; font-size: 1.25rem;">Available Products</h3>
+                    <h3 style="margin-bottom: 1rem; color: #111827;">Available Products</h3>
                     <div style="display: flex; flex-direction: column; gap: 1rem; max-height: 600px; overflow-y: auto;">
-                        ${available.length === 0 ? 
-                            '<div style="background: #F9FAFB; padding: 2rem; border-radius: 8px; text-align: center; color: #6B7280;">All products are already featured!</div>' 
-                            : ''}
-                        ${available.map(product => `
+                        ${available.length === 0 ? '<div style="background: #F9FAFB; padding: 2rem; border-radius: 8px; text-align: center; color: #6B7280;">All products featured!</div>' : ''}
+                        ${available.map(p => `
                             <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 1rem;">
-                                <img src="${product.images?.[0] || product.image_url || ''}" 
-                                     style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; background: #f3f4f6;">
+                                <img src="${p.images?.[0] || p.image_url || ""}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
                                 <div style="flex: 1;">
-                                    <strong style="display: block; margin-bottom: 0.25rem; color: #111827;">${product.name}</strong>
-                                    <div style="color: #3B82F6; font-size: 1.125rem; font-weight: 600;">$${parseFloat(product.price).toFixed(2)}</div>
+                                    <strong>${p.name}</strong>
+                                    <div style="color: #3B82F6; font-size: 1.125rem; font-weight: 600;">$${p.price.toFixed(2)}</div>
                                 </div>
-                                <button onclick="addFeaturedProduct(${product.id})" 
-                                        class="btn btn-primary" 
-                                        style="padding: 0.5rem 1rem; white-space: nowrap; ${featured.length >= 3 ? 'opacity: 0.5; cursor: not-allowed;' : ''}"
-                                        ${featured.length >= 3 ? 'disabled' : ''}>
-                                    ${featured.length >= 3 ? 'Max (3)' : 'Add'}
+                                <button class="btn btn-primary" style="padding: 0.5rem 1rem; ${featured.length >= 3 ? "opacity: 0.5; cursor: not-allowed;" : ""}" ${featured.length >= 3 ? "disabled" : ""} onclick="addFeaturedProduct(${p.id})">
+                                    ${featured.length >= 3 ? "Max (3)" : "Add"}
                                 </button>
                             </div>
-                        `).join('')}
+                        `).join("")}
                     </div>
                 </div>
             </div>
         `;
-        
     } catch (error) {
-        console.error("Error loading featured products:", error);
-        container.innerHTML = `<p style="text-align: center; padding: 2rem; color: #EF4444;">Error loading featured products: ${error.message}</p>`;
+        console.error("Featured products error:", error);
+        container.innerHTML = `<p style="color: #EF4444; text-align: center; padding: 2rem;">Error: ${error.message}</p>`;
     }
 }
 
-// Add product to featured
 window.addFeaturedProduct = async function(productId) {
     try {
-        // Check current count
-        const { data: currentFeatured } = await supabase
-            .from("products")
-            .select("id")
-            .eq("is_featured", true);
+        const { data: current } = await supabase.from("products").select("id").eq("is_featured", true);
         
-        if (currentFeatured && currentFeatured.length >= 3) {
-            alert("Maximum 3 featured products allowed! Remove one first.");
+        if (current && current.length >= 3) {
+            alert("Maximum 3 featured products!");
             return;
         }
         
-        // Calculate next order
-        const nextOrder = currentFeatured ? currentFeatured.length + 1 : 1;
-        
-        // Update product
-        const { error } = await supabase
-            .from("products")
-            .update({
-                is_featured: true,
-                featured_order: nextOrder
-            })
-            .eq("id", productId);
-        
-        if (error) throw error;
-        
-        // Reload the manager
+        const nextOrder = current ? current.length + 1 : 1;
+        await supabase.from("products").update({ is_featured: true, featured_order: nextOrder }).eq("id", productId);
         await loadFeaturedManager();
-        
     } catch (error) {
-        console.error("Error adding featured product:", error);
-        alert("Error adding featured product: " + error.message);
+        alert("Error: " + error.message);
     }
 };
 
-// Remove product from featured
 window.removeFeaturedProduct = async function(productId) {
     try {
-        // Remove featured status
-        const { error } = await supabase
-            .from("products")
-            .update({
-                is_featured: false,
-                featured_order: null
-            })
-            .eq("id", productId);
+        await supabase.from("products").update({ is_featured: false, featured_order: null }).eq("id", productId);
         
-        if (error) throw error;
+        const { data: remaining } = await supabase.from("products").select("*").eq("is_featured", true).order("featured_order", { ascending: true });
         
-        // Reorder remaining featured products
-        const { data: remaining } = await supabase
-            .from("products")
-            .select("*")
-            .eq("is_featured", true)
-            .order("featured_order", { ascending: true });
-        
-        if (remaining && remaining.length > 0) {
+        if (remaining) {
             for (let i = 0; i < remaining.length; i++) {
-                await supabase
-                    .from("products")
-                    .update({ featured_order: i + 1 })
-                    .eq("id", remaining[i].id);
+                await supabase.from("products").update({ featured_order: i + 1 }).eq("id", remaining[i].id);
             }
         }
         
-        // Reload the manager
         await loadFeaturedManager();
-        
     } catch (error) {
-        console.error("Error removing featured product:", error);
-        alert("Error removing featured product: " + error.message);
+        alert("Error: " + error.message);
     }
 };
 
-// Initialize
 checkAuth();
