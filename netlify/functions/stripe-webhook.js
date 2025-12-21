@@ -31,13 +31,24 @@ exports.handler = async (event) => {
     const session = stripeEvent.data.object;
     
     try {
-      // Get line items from the session
-      const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
+      // Retrieve full session with shipping details (webhook event sometimes has incomplete data)
+      const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
+        expand: ['line_items', 'customer']
+      });
       
-      // Get shipping and customer details
-      const shippingDetails = session.shipping_details || session.shipping || {};
-      const customerDetails = session.customer_details || {};
+      console.log('Full session retrieved:', fullSession.id);
+      
+      // Get line items from the session
+      const lineItems = await stripe.checkout.sessions.listLineItems(fullSession.id);
+      
+      // Get shipping and customer details from FULL session
+      const shippingDetails = fullSession.shipping_details || fullSession.shipping || {};
+      const customerDetails = fullSession.customer_details || {};
       const shippingAddress = shippingDetails.address || {};
+      
+      // Log for debugging
+      console.log('Shipping Details:', JSON.stringify(shippingDetails));
+      console.log('Customer Details:', JSON.stringify(customerDetails));
       
       // Process each line item
       for (const item of lineItems.data) {
@@ -65,6 +76,23 @@ exports.handler = async (event) => {
           }
           
           // Save order to database
+          const customerName = shippingDetails.name || customerDetails.name || 'Guest';
+          const customerEmail = customerDetails.email || session.customer_email || 'unknown@email.com';
+          const customerPhone = customerDetails.phone || shippingDetails.phone || null;
+          
+          // Build shipping address object
+          const fullShippingAddress = {
+            name: shippingDetails.name || customerName,
+            line1: shippingAddress.line1 || '',
+            line2: shippingAddress.line2 || '',
+            city: shippingAddress.city || '',
+            state: shippingAddress.state || '',
+            postal_code: shippingAddress.postal_code || '',
+            country: shippingAddress.country || '',
+          };
+          
+          console.log('Saving shipping address:', JSON.stringify(fullShippingAddress));
+          
           const orderData = {
             product_id: product.id,
             product_name: product.name,
@@ -72,19 +100,11 @@ exports.handler = async (event) => {
             product_image: product.images && product.images.length > 0 ? product.images[0] : product.image_url,
             quantity: item.quantity,
             total_price: session.amount_total / 100,
-            customer_email: customerDetails.email || session.customer_email || 'unknown@email.com',
-            customer_name: customerDetails.name || shippingDetails.name || 'Guest',
-            customer_phone: customerDetails.phone || session.customer_details?.phone || null,
-            shipping_address: {
-              name: shippingDetails.name || customerDetails.name || 'N/A',
-              line1: shippingAddress.line1 || '',
-              line2: shippingAddress.line2 || '',
-              city: shippingAddress.city || '',
-              state: shippingAddress.state || '',
-              postal_code: shippingAddress.postal_code || '',
-              country: shippingAddress.country || '',
-            },
-            shipping_name: shippingDetails.name || customerDetails.name || 'N/A',
+            customer_email: customerEmail,
+            customer_name: customerName,
+            customer_phone: customerPhone,
+            shipping_address: fullShippingAddress,
+            shipping_name: shippingDetails.name || customerName,
             stripe_session_id: session.id,
             stripe_payment_intent: session.payment_intent,
             stripe_customer_id: session.customer,
