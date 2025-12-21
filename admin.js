@@ -1,9 +1,12 @@
-// FIXED Admin Dashboard - All Issues Resolved
+// COMPLETE Admin Dashboard - Full CRUD with Image Upload & Variants
 let currentUser = null;
 let allProducts = [];
 let allOrders = [];
 let allCategories = [];
 let allTags = [];
+let productImages = [];
+let productVariants = [];
+let currentEditingProductId = null;
 
 // Login
 document.getElementById("login-form")?.addEventListener("submit", async (e) => {
@@ -141,7 +144,7 @@ function displayProducts() {
         return `
         <div class="product-admin-card">
             <div style="position: relative;">
-                <img src="${mainImage}" alt="${product.name}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;">
+                <img src="${mainImage}" alt="${product.name}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 8px;">
                 ${imageCount > 1 ? `<div style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;">+${imageCount - 1}</div>` : ""}
                 ${variantCount > 0 ? `<div style="position: absolute; bottom: 8px; left: 8px; background: rgba(59,130,246,0.9); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;">${variantCount} variants</div>` : ""}
             </div>
@@ -149,17 +152,202 @@ function displayProducts() {
             <div class="price">$${parseFloat(product.price).toFixed(2)}${variantCount > 0 ? "+" : ""}</div>
             <div class="stock">${product.track_inventory === false ? "Unlimited" : product.stock + " in stock"}</div>
             <div class="product-admin-actions">
-                <button class="btn-edit" onclick="alert('Edit feature coming soon')">Edit</button>
+                <button class="btn-edit" onclick="editProduct(${product.id})">Edit</button>
                 <button class="btn-delete" onclick="softDeleteProduct(${product.id})">Delete</button>
             </div>
         </div>
     `}).join("");
 }
 
+// Add Product Button
+document.getElementById("add-product-btn")?.addEventListener("click", () => {
+    showProductModal();
+});
+
+// Show Product Modal
+function showProductModal(product = null) {
+    currentEditingProductId = product ? product.id : null;
+    productImages = product?.images || [];
+    productVariants = product?.variants || [];
+    
+    const modal = document.getElementById("product-modal");
+    const title = document.getElementById("modal-title");
+    
+    title.textContent = product ? "Edit Product" : "Add Product";
+    
+    // Fill form
+    document.getElementById("product-name").value = product?.name || "";
+    document.getElementById("product-description").value = product?.description || "";
+    document.getElementById("product-price").value = product?.price || "";
+    document.getElementById("product-stock").value = product?.stock || "";
+    document.getElementById("product-status").value = product?.status || "active";
+    document.getElementById("track-inventory").checked = product?.track_inventory !== false;
+    
+    updateImagesPreview();
+    updateVariantsDisplay();
+    
+    modal.classList.add("active");
+}
+
+// Close Modal
+document.getElementById("close-modal")?.addEventListener("click", () => {
+    document.getElementById("product-modal").classList.remove("active");
+    currentEditingProductId = null;
+    productImages = [];
+    productVariants = [];
+});
+
+// Image Upload
+document.getElementById("product-images")?.addEventListener("change", async (e) => {
+    const files = Array.from(e.target.files);
+    const uploadBtn = document.querySelector(".upload-images-btn");
+    
+    uploadBtn.disabled = true;
+    uploadBtn.innerHTML = '<span style="display: inline-block; animation: spin 1s linear infinite;">⏳</span> Uploading...';
+    
+    for (const file of files) {
+        try {
+            const url = await uploadImage(file);
+            productImages.push(url);
+        } catch (error) {
+            alert("Error uploading image: " + error.message);
+        }
+    }
+    
+    updateImagesPreview();
+    uploadBtn.disabled = false;
+    uploadBtn.innerHTML = '📤 Upload Images';
+    e.target.value = "";
+});
+
+async function uploadImage(file) {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `products/${fileName}`;
+    
+    const { error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(filePath, file);
+    
+    if (uploadError) throw uploadError;
+    
+    const { data } = supabase.storage.from('product-images').getPublicUrl(filePath);
+    return data.publicUrl;
+}
+
+function updateImagesPreview() {
+    const container = document.getElementById("images-preview");
+    if (productImages.length === 0) {
+        container.innerHTML = '<p style="color: #6B7280; text-align: center;">No images uploaded</p>';
+        return;
+    }
+    
+    container.innerHTML = productImages.map((url, index) => `
+        <div style="position: relative; display: inline-block; margin: 0.5rem;">
+            <img src="${url}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: ${index === 0 ? '3px solid #3B82F6' : '2px solid #E5E7EB'};">
+            <button onclick="removeImage(${index})" style="position: absolute; top: -8px; right: -8px; background: #EF4444; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold;">×</button>
+            ${index === 0 ? '<div style="text-align: center; color: #3B82F6; font-size: 0.75rem; font-weight: 600; margin-top: 4px;">Primary</div>' : `<button onclick="setPrimaryImage(${index})" style="margin-top: 4px; padding: 2px 8px; font-size: 0.75rem; background: white; border: 1px solid #3B82F6; color: #3B82F6; border-radius: 4px; cursor: pointer;">Set Primary</button>`}
+        </div>
+    `).join("");
+}
+
+window.removeImage = function(index) {
+    productImages.splice(index, 1);
+    updateImagesPreview();
+};
+
+window.setPrimaryImage = function(index) {
+    const image = productImages.splice(index, 1)[0];
+    productImages.unshift(image);
+    updateImagesPreview();
+};
+
+// Variants
+document.getElementById("add-variant-btn")?.addEventListener("click", () => {
+    productVariants.push({ name: "", price: "", stock: "" });
+    updateVariantsDisplay();
+});
+
+function updateVariantsDisplay() {
+    const container = document.getElementById("variants-container");
+    if (productVariants.length === 0) {
+        container.innerHTML = '<p style="color: #6B7280;">No variants added</p>';
+        return;
+    }
+    
+    container.innerHTML = productVariants.map((variant, index) => `
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 0.5rem; margin-bottom: 0.5rem; align-items: center;">
+            <input type="text" placeholder="Variant name" value="${variant.name}" onchange="updateVariant(${index}, 'name', this.value)" style="padding: 0.5rem; border: 1px solid #E5E7EB; border-radius: 4px;">
+            <input type="number" placeholder="Price" value="${variant.price}" onchange="updateVariant(${index}, 'price', this.value)" style="padding: 0.5rem; border: 1px solid #E5E7EB; border-radius: 4px;">
+            <input type="number" placeholder="Stock" value="${variant.stock}" onchange="updateVariant(${index}, 'stock', this.value)" style="padding: 0.5rem; border: 1px solid #E5E7EB; border-radius: 4px;">
+            <button onclick="removeVariant(${index})" style="background: #EF4444; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Remove</button>
+        </div>
+    `).join("");
+}
+
+window.updateVariant = function(index, field, value) {
+    productVariants[index][field] = value;
+};
+
+window.removeVariant = function(index) {
+    productVariants.splice(index, 1);
+    updateVariantsDisplay();
+};
+
+// Save Product
+document.getElementById("save-product-btn")?.addEventListener("click", async () => {
+    const name = document.getElementById("product-name").value;
+    const description = document.getElementById("product-description").value;
+    const price = parseFloat(document.getElementById("product-price").value);
+    const stock = parseInt(document.getElementById("product-stock").value);
+    const status = document.getElementById("product-status").value;
+    const trackInventory = document.getElementById("track-inventory").checked;
+    
+    if (!name || !price) {
+        alert("Please fill in required fields (name and price)");
+        return;
+    }
+    
+    const productData = {
+        name,
+        description,
+        price,
+        stock: trackInventory ? stock : null,
+        track_inventory: trackInventory,
+        status,
+        images: productImages,
+        image_url: productImages[0] || null,
+        variants: productVariants.length > 0 ? productVariants : null
+    };
+    
+    try {
+        if (currentEditingProductId) {
+            // Update
+            await supabase.from("products").update(productData).eq("id", currentEditingProductId);
+            alert("Product updated!");
+        } else {
+            // Create
+            await supabase.from("products").insert([productData]);
+            alert("Product created!");
+        }
+        
+        document.getElementById("product-modal").classList.remove("active");
+        await loadProducts();
+    } catch (error) {
+        alert("Error: " + error.message);
+    }
+});
+
+window.editProduct = async function(productId) {
+    const product = allProducts.find(p => p.id === productId);
+    if (product) {
+        showProductModal(product);
+    }
+};
+
 window.softDeleteProduct = async function(productId) {
     if (!confirm("Delete this product?")) return;
     try {
-        // Also unfeatured if it's featured
         await supabase.from("products").update({ deleted: true, is_featured: false, featured_order: null }).eq("id", productId);
         alert("Product deleted!");
         await loadProducts();
@@ -375,7 +563,6 @@ async function loadFeaturedManager() {
     container.innerHTML = '<p style="text-align: center; padding: 2rem;">Loading...</p>';
     
     try {
-        // Get ONLY active, non-deleted products
         const { data: products, error } = await supabase
             .from("products")
             .select("*")
@@ -390,7 +577,6 @@ async function loadFeaturedManager() {
             return;
         }
         
-        // Count ONLY active, non-deleted featured products
         const featured = products.filter(p => p.is_featured === true).sort((a, b) => (a.featured_order || 0) - (b.featured_order || 0));
         const available = products.filter(p => !p.is_featured);
         
@@ -444,7 +630,6 @@ async function loadFeaturedManager() {
 
 window.addFeaturedProduct = async function(productId) {
     try {
-        // Count ONLY active, non-deleted featured products
         const { data: current } = await supabase
             .from("products")
             .select("id")
@@ -469,7 +654,6 @@ window.removeFeaturedProduct = async function(productId) {
     try {
         await supabase.from("products").update({ is_featured: false, featured_order: null }).eq("id", productId);
         
-        // Reorder remaining featured products (active & non-deleted only)
         const { data: remaining } = await supabase
             .from("products")
             .select("*")
