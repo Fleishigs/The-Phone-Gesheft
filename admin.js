@@ -219,7 +219,13 @@ async function syncOrders() {
             }
         }
         
-        displayOrders(allOrdersCache);
+        // Apply current filter before displaying
+        let ordersToDisplay = allOrdersCache;
+        if (currentFilter !== 'all') {
+            ordersToDisplay = allOrdersCache.filter(o => o.status === currentFilter);
+        }
+        
+        displayOrders(ordersToDisplay);
         updateDashboardStats(allOrdersCache);
         
         if (indicator) {
