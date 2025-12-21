@@ -1285,18 +1285,18 @@ a {
     background: #F9FAFB;
 }
 
-/* Products Grid (Admin) */
+/* Products Grid (Admin) - FIXED SIZE */
 .products-admin-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.25rem;
     margin-top: 1rem;
 }
 
 .product-admin-card {
     background: white;
     border-radius: 8px;
-    padding: 1.5rem;
+    padding: 1rem;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     transition: transform 0.2s, box-shadow 0.2s;
 }
@@ -1306,28 +1306,35 @@ a {
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
+.product-admin-card img {
+    width: 100%;
+    height: 160px !important;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
 .product-admin-card h3 {
-    margin: 1rem 0 0.5rem 0;
-    font-size: 1.125rem;
+    margin: 0.75rem 0 0.5rem 0;
+    font-size: 1rem;
 }
 
 .product-admin-card .price {
     color: #3B82F6;
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     font-weight: 700;
-    margin: 0.5rem 0;
+    margin: 0.25rem 0;
 }
 
 .product-admin-card .stock {
     color: #6B7280;
-    font-size: 0.875rem;
-    margin-bottom: 1rem;
+    font-size: 0.8125rem;
+    margin-bottom: 0.75rem;
 }
 
 .product-admin-actions {
     display: flex;
     gap: 0.5rem;
-    margin-top: 1rem;
+    margin-top: 0.75rem;
 }
 
 .btn-edit {
@@ -1335,10 +1342,11 @@ a {
     background: #3B82F6;
     color: white;
     border: none;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0.75rem;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 500;
+    font-size: 0.875rem;
     transition: background 0.2s;
 }
 
@@ -1351,10 +1359,11 @@ a {
     background: #EF4444;
     color: white;
     border: none;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0.75rem;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 500;
+    font-size: 0.875rem;
     transition: background 0.2s;
 }
 

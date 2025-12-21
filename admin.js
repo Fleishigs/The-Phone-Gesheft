@@ -1,11 +1,9 @@
-// COMPLETE Admin Dashboard - ALL Sections Working
+// FIXED Admin Dashboard - All Issues Resolved
 let currentUser = null;
 let allProducts = [];
 let allOrders = [];
 let allCategories = [];
 let allTags = [];
-let productImages = [];
-let productVariants = [];
 
 // Login
 document.getElementById("login-form")?.addEventListener("submit", async (e) => {
@@ -161,7 +159,8 @@ function displayProducts() {
 window.softDeleteProduct = async function(productId) {
     if (!confirm("Delete this product?")) return;
     try {
-        await supabase.from("products").update({ deleted: true }).eq("id", productId);
+        // Also unfeatured if it's featured
+        await supabase.from("products").update({ deleted: true, is_featured: false, featured_order: null }).eq("id", productId);
         alert("Product deleted!");
         await loadProducts();
     } catch (error) {
@@ -370,12 +369,13 @@ window.deleteTag = async function(id) {
     }
 };
 
-// FEATURED PRODUCTS MANAGER
+// FEATURED PRODUCTS MANAGER - FIXED
 async function loadFeaturedManager() {
     const container = document.getElementById("featured-products-manager");
     container.innerHTML = '<p style="text-align: center; padding: 2rem;">Loading...</p>';
     
     try {
+        // Get ONLY active, non-deleted products
         const { data: products, error } = await supabase
             .from("products")
             .select("*")
@@ -390,15 +390,18 @@ async function loadFeaturedManager() {
             return;
         }
         
+        // Count ONLY active, non-deleted featured products
         const featured = products.filter(p => p.is_featured === true).sort((a, b) => (a.featured_order || 0) - (b.featured_order || 0));
         const available = products.filter(p => !p.is_featured);
+        
+        const featuredCount = featured.length;
         
         container.innerHTML = `
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
                 <div>
-                    <h3 style="margin-bottom: 1rem; color: #111827;">Featured Products (${featured.length}/3)</h3>
+                    <h3 style="margin-bottom: 1rem; color: #111827;">Featured Products (${featuredCount}/3)</h3>
                     <div style="display: flex; flex-direction: column; gap: 1rem;">
-                        ${featured.length === 0 ? '<div style="background: #F9FAFB; padding: 2rem; border-radius: 8px; text-align: center; color: #6B7280;">No featured products. Click "Add" on products →</div>' : ''}
+                        ${featuredCount === 0 ? '<div style="background: #F9FAFB; padding: 2rem; border-radius: 8px; text-align: center; color: #6B7280;">No featured products. Click "Add" on products →</div>' : ''}
                         ${featured.map(p => `
                             <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 1rem;">
                                 <img src="${p.images?.[0] || p.image_url || ""}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
@@ -424,8 +427,8 @@ async function loadFeaturedManager() {
                                     <strong>${p.name}</strong>
                                     <div style="color: #3B82F6; font-size: 1.125rem; font-weight: 600;">$${p.price.toFixed(2)}</div>
                                 </div>
-                                <button class="btn btn-primary" style="padding: 0.5rem 1rem; ${featured.length >= 3 ? "opacity: 0.5; cursor: not-allowed;" : ""}" ${featured.length >= 3 ? "disabled" : ""} onclick="addFeaturedProduct(${p.id})">
-                                    ${featured.length >= 3 ? "Max (3)" : "Add"}
+                                <button class="btn btn-primary" style="padding: 0.5rem 1rem; ${featuredCount >= 3 ? "opacity: 0.5; cursor: not-allowed;" : ""}" ${featuredCount >= 3 ? "disabled" : ""} onclick="addFeaturedProduct(${p.id})">
+                                    ${featuredCount >= 3 ? "Max (3)" : "Add"}
                                 </button>
                             </div>
                         `).join("")}
@@ -441,7 +444,13 @@ async function loadFeaturedManager() {
 
 window.addFeaturedProduct = async function(productId) {
     try {
-        const { data: current } = await supabase.from("products").select("id").eq("is_featured", true);
+        // Count ONLY active, non-deleted featured products
+        const { data: current } = await supabase
+            .from("products")
+            .select("id")
+            .eq("is_featured", true)
+            .eq("status", "active")
+            .eq("deleted", false);
         
         if (current && current.length >= 3) {
             alert("Maximum 3 featured products!");
@@ -460,7 +469,14 @@ window.removeFeaturedProduct = async function(productId) {
     try {
         await supabase.from("products").update({ is_featured: false, featured_order: null }).eq("id", productId);
         
-        const { data: remaining } = await supabase.from("products").select("*").eq("is_featured", true).order("featured_order", { ascending: true });
+        // Reorder remaining featured products (active & non-deleted only)
+        const { data: remaining } = await supabase
+            .from("products")
+            .select("*")
+            .eq("is_featured", true)
+            .eq("status", "active")
+            .eq("deleted", false)
+            .order("featured_order", { ascending: true });
         
         if (remaining) {
             for (let i = 0; i < remaining.length; i++) {
