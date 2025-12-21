@@ -1,77 +1,79 @@
-// Homepage functionality - WITH SOFT DELETE FILTER
+// Main app.js - Homepage featured products loader
+const { createClient } = supabase;
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Update cart count
+async function updateCartCount() {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const cartCountEl = document.querySelector('.cart-count');
+    if (cartCountEl) {
+        cartCountEl.textContent = count;
+        cartCountEl.style.display = count > 0 ? 'flex' : 'none';
+    }
+}
+
+// Load featured products on homepage
 async function loadFeaturedProducts() {
     try {
-        const { data: products, error } = await supabase
+        const { data: products, error } = await supabaseClient
             .from('products')
             .select('*')
             .eq('is_featured', true)
             .eq('status', 'active')
-            .eq('deleted', false)  // SOFT DELETE - Filter out deleted products
+            .eq('deleted', false)
             .order('featured_order', { ascending: true })
             .limit(3);
-        
+
         if (error) throw error;
-        
-        displayFeaturedProducts(products || []);
+
+        const grid = document.getElementById('featured-grid');
+        if (!grid) return;
+
+        if (!products || products.length === 0) {
+            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #6B7280;">No featured products yet. Add some in the admin panel!</p>';
+            return;
+        }
+
+        grid.innerHTML = products.map(product => {
+            const imageUrl = product.images && product.images.length > 0 
+                ? product.images[0] 
+                : product.image_url || '';
+            
+            const hasVariants = product.variants && product.variants.length > 0;
+            const basePrice = parseFloat(product.price);
+
+            return `
+                <div class="product-card">
+                    <a href="/product.html?id=${product.id}">
+                        <div class="product-image">
+                            <img src="${imageUrl}" alt="${product.name}">
+                        </div>
+                        <div class="product-info">
+                            <h3>${product.name}</h3>
+                            <div class="product-price">$${basePrice.toFixed(2)}${hasVariants ? '+' : ''}</div>
+                            ${product.track_inventory !== false ? `<div class="product-stock">${product.stock} in stock</div>` : ''}
+                        </div>
+                    </a>
+                </div>
+            `;
+        }).join('');
+
     } catch (error) {
         console.error('Error loading featured products:', error);
-    }
-}
-
-function displayFeaturedProducts(products) {
-    const grid = document.getElementById('featured-products-grid');
-    if (!grid) return;
-    
-    if (products.length === 0) {
-        grid.innerHTML = '<p style="text-align: center; color: #6B7280; grid-column: 1 / -1;">No featured products yet</p>';
-        return;
-    }
-    
-    grid.innerHTML = products.map(product => {
-        const images = product.images && product.images.length > 0 ? product.images : [product.image_url];
-        const mainImage = images[0];
-        
-        // Determine price display
-        let priceDisplay = '';
-        let hasVariants = product.variants && product.variants.length > 0;
-        if (hasVariants) {
-            const prices = product.variants.map(v => v.price);
-            const minPrice = Math.min(...prices);
-            priceDisplay = `From $${minPrice.toFixed(2)}`;
-        } else {
-            priceDisplay = `$${product.price.toFixed(2)}`;
+        const grid = document.getElementById('featured-grid');
+        if (grid) {
+            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #EF4444;">Error loading products. Please try again later.</p>';
         }
-        
-        return `
-            <div class="product-card" onclick="window.location.href='/product?id=${product.id}'" style="cursor: pointer;">
-                <div class="product-image-container">
-                    <img src="${mainImage}" alt="${product.name}" class="product-image">
-                </div>
-                <div class="product-info">
-                    <h3 class="product-name">${product.name}</h3>
-                    <p class="product-description">${truncate(product.description, 80)}</p>
-                    <div class="product-price">${priceDisplay}</div>
-                </div>
-            </div>
-        `;
-    }).join('');
+    }
 }
 
-function truncate(text, length) {
-    if (!text || text.length <= length) return text || '';
-    return text.substring(0, length) + '...';
-}
-
-function updateCartCount() {
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-    document.querySelectorAll('.cart-count').forEach(el => {
-        el.textContent = count;
-    });
-}
-
-// Initialize
-if (document.getElementById('featured-products-grid')) {
-    loadFeaturedProducts();
-}
-updateCartCount();
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+    updateCartCount();
+    
+    // Load featured products if we're on the homepage
+    if (document.getElementById('featured-grid')) {
+        loadFeaturedProducts();
+    }
+});
