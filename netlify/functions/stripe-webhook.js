@@ -165,7 +165,7 @@ async function sendOrderConfirmationEmail(order) {
   const address = order.shipping_address || {};
   
   await resend.emails.send({
-    from: 'The Phone Gesheft <orders@resend.dev>', // Will update when you verify domain
+    from: 'The Phone Gesheft <orders@thephonegesheft.com>',
     to: order.customer_email,
     subject: `Order Confirmation #${order.id} - The Phone Gesheft`,
     html: `
@@ -237,7 +237,7 @@ async function sendAdminNotificationEmail(order) {
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
   
   await resend.emails.send({
-    from: 'The Phone Gesheft <orders@resend.dev>',
+    from: 'The Phone Gesheft <orders@thephonegesheft.com>',
     to: adminEmail,
     subject: `🔔 New Order #${order.id}`,
     html: `
