@@ -5,6 +5,249 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - The Phone Gesheft</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Beautiful Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: #3B82F6;
+        }
+        
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Beautiful Image Upload Area */
+        .image-upload-zone {
+            border: 3px dashed #D1D5DB;
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            background: #F9FAFB;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .image-upload-zone:hover {
+            border-color: #3B82F6;
+            background: #EFF6FF;
+        }
+        
+        .image-upload-zone.dragover {
+            border-color: #3B82F6;
+            background: #DBEAFE;
+        }
+
+        /* Image Preview Grid */
+        .images-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .image-preview-item {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .image-preview-item.primary {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        
+        .image-preview-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .image-remove-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #EF4444;
+            color: white;
+            border: 2px solid white;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 18px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .image-remove-btn:hover {
+            background: #DC2626;
+            transform: scale(1.1);
+        }
+        
+        .image-primary-badge {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(59, 130, 246, 0.95), transparent);
+            color: white;
+            padding: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .image-set-primary-btn {
+            position: absolute;
+            bottom: 4px;
+            left: 4px;
+            right: 4px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #3B82F6;
+            border: none;
+            padding: 0.25rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .image-set-primary-btn:hover {
+            background: #3B82F6;
+            color: white;
+        }
+
+        /* Beautiful Variant Cards */
+        .variant-card {
+            background: #F9FAFB;
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+        }
+        
+        .variant-card:hover {
+            border-color: #3B82F6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+        }
+        
+        .variant-inputs {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .variant-remove-btn {
+            background: #FEE2E2;
+            color: #DC2626;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .variant-remove-btn:hover {
+            background: #EF4444;
+            color: white;
+        }
+
+        /* Modal Improvements */
+        .modal-content {
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #E5E7EB;
+        }
+        
+        .modal-section-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #111827;
+            margin: 0 0 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            border: 2px solid #E5E7EB;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
     <!-- Login Screen -->
@@ -80,7 +323,7 @@
             <div id="products-section" class="admin-section" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                     <h2 style="margin: 0;">Products</h2>
-                    <button id="add-product-btn" class="btn btn-primary">Add Product</button>
+                    <button id="add-product-btn" class="btn btn-primary">+ Add Product</button>
                 </div>
                 <div id="products-grid" class="products-admin-grid"></div>
             </div>
@@ -118,7 +361,7 @@
         </main>
     </div>
 
-    <!-- Product Modal -->
+    <!-- BEAUTIFUL Product Modal -->
     <div id="product-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -126,61 +369,85 @@
                 <button id="close-modal" class="modal-close">×</button>
             </div>
             <div style="padding: 2rem;">
-                <div class="form-group">
-                    <label>Product Name *</label>
-                    <input type="text" id="product-name" placeholder="Enter product name">
-                </div>
-
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="product-description" rows="4" placeholder="Product description"></textarea>
-                </div>
-
-                <div class="form-row">
+                
+                <!-- Basic Information -->
+                <div class="modal-section">
+                    <h3 class="modal-section-title">📝 Basic Information</h3>
+                    
                     <div class="form-group">
-                        <label>Price *</label>
-                        <input type="number" id="product-price" step="0.01" placeholder="0.00">
+                        <label>Product Name *</label>
+                        <input type="text" id="product-name" placeholder="e.g. Nokia 3310 Browser-Free Edition">
                     </div>
+
                     <div class="form-group">
-                        <label>Stock</label>
+                        <label>Description</label>
+                        <textarea id="product-description" rows="4" placeholder="Describe your product..."></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Price *</label>
+                            <input type="number" id="product-price" step="0.01" placeholder="99.99">
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="product-status">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inventory Management -->
+                <div class="modal-section">
+                    <h3 class="modal-section-title">📦 Inventory</h3>
+                    
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                        <div>
+                            <strong style="display: block; color: #111827; margin-bottom: 0.25rem;">Track Inventory</strong>
+                            <span style="font-size: 0.875rem; color: #6B7280;">Enable stock tracking for this product</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="track-inventory" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div id="stock-field" class="form-group">
+                        <label>Stock Quantity</label>
                         <input type="number" id="product-stock" placeholder="0">
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Status</label>
-                    <select id="product-status">
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label style="display: flex; align-items: center; gap: 0.5rem;">
-                        <input type="checkbox" id="track-inventory" checked>
-                        <span>Track Inventory</span>
-                    </label>
-                </div>
-
-                <div class="form-group">
-                    <label>Product Images</label>
+                <!-- Product Images -->
+                <div class="modal-section">
+                    <h3 class="modal-section-title">🖼️ Product Images</h3>
+                    
+                    <div class="image-upload-zone" onclick="document.getElementById('product-images').click()">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">📷</div>
+                        <p style="font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Click to upload images</p>
+                        <p style="font-size: 0.875rem; color: #6B7280;">or drag and drop</p>
+                        <p style="font-size: 0.75rem; color: #9CA3AF; margin-top: 0.5rem;">PNG, JPG, WEBP up to 10MB</p>
+                    </div>
                     <input type="file" id="product-images" accept="image/*" multiple style="display: none;">
-                    <button class="btn btn-secondary upload-images-btn" onclick="document.getElementById('product-images').click()">📤 Upload Images</button>
-                    <div id="images-preview" style="margin-top: 1rem; min-height: 100px; border: 2px dashed #E5E7EB; border-radius: 8px; padding: 1rem;">
-                        <p style="color: #6B7280; text-align: center;">No images uploaded</p>
-                    </div>
+                    
+                    <div id="images-preview" class="images-preview-grid" style="margin-top: 1.5rem;"></div>
                 </div>
 
-                <div class="form-group">
-                    <label>Product Variants (Optional)</label>
+                <!-- Product Variants -->
+                <div class="modal-section">
+                    <h3 class="modal-section-title">🎨 Product Variants (Optional)</h3>
+                    <p style="font-size: 0.875rem; color: #6B7280; margin-bottom: 1rem;">Add different variations like colors, sizes, or models</p>
+                    
                     <button type="button" id="add-variant-btn" class="btn btn-secondary">+ Add Variant</button>
-                    <div id="variants-container" style="margin-top: 1rem;">
-                        <p style="color: #6B7280;">No variants added</p>
-                    </div>
+                    
+                    <div id="variants-container" style="margin-top: 1rem;"></div>
                 </div>
 
-                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                    <button id="save-product-btn" class="btn btn-primary btn-full">Save Product</button>
+                <!-- Save Button -->
+                <div style="display: flex; gap: 1rem; margin-top: 2rem; padding-top: 2rem; border-top: 2px solid #E5E7EB;">
+                    <button id="save-product-btn" class="btn btn-primary btn-large btn-full">💾 Save Product</button>
                 </div>
             </div>
         </div>
@@ -189,5 +456,44 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <script src="admin.js"></script>
+    
+    <script>
+        // Toggle stock field visibility
+        document.getElementById('track-inventory')?.addEventListener('change', function() {
+            const stockField = document.getElementById('stock-field');
+            if (stockField) {
+                stockField.style.display = this.checked ? 'block' : 'none';
+            }
+        });
+
+        // Drag and drop for images
+        const uploadZone = document.querySelector('.image-upload-zone');
+        if (uploadZone) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadZone.addEventListener(eventName, () => uploadZone.classList.add('dragover'), false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadZone.addEventListener(eventName, () => uploadZone.classList.remove('dragover'), false);
+            });
+
+            uploadZone.addEventListener('drop', function(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                document.getElementById('product-images').files = files;
+                const event = new Event('change', { bubbles: true });
+                document.getElementById('product-images').dispatchEvent(event);
+            });
+        }
+    </script>
 </body>
 </html>

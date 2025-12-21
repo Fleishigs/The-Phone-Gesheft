@@ -200,10 +200,16 @@ document.getElementById("close-modal")?.addEventListener("click", () => {
 // Image Upload
 document.getElementById("product-images")?.addEventListener("change", async (e) => {
     const files = Array.from(e.target.files);
-    const uploadBtn = document.querySelector(".upload-images-btn");
+    if (files.length === 0) return;
     
-    uploadBtn.disabled = true;
-    uploadBtn.innerHTML = '<span style="display: inline-block; animation: spin 1s linear infinite;">⏳</span> Uploading...';
+    const uploadZone = document.querySelector('.image-upload-zone');
+    const originalHTML = uploadZone.innerHTML;
+    
+    uploadZone.innerHTML = `
+        <div style="font-size: 3rem; margin-bottom: 1rem; animation: spin 2s linear infinite;">⏳</div>
+        <p style="font-weight: 600; color: #3B82F6;">Uploading ${files.length} image${files.length > 1 ? 's' : ''}...</p>
+        <p style="font-size: 0.875rem; color: #6B7280; margin-top: 0.5rem;">Please wait</p>
+    `;
     
     for (const file of files) {
         try {
@@ -214,9 +220,8 @@ document.getElementById("product-images")?.addEventListener("change", async (e) 
         }
     }
     
+    uploadZone.innerHTML = originalHTML;
     updateImagesPreview();
-    uploadBtn.disabled = false;
-    uploadBtn.innerHTML = '📤 Upload Images';
     e.target.value = "";
 });
 
@@ -238,15 +243,18 @@ async function uploadImage(file) {
 function updateImagesPreview() {
     const container = document.getElementById("images-preview");
     if (productImages.length === 0) {
-        container.innerHTML = '<p style="color: #6B7280; text-align: center;">No images uploaded</p>';
+        container.innerHTML = '';
         return;
     }
     
     container.innerHTML = productImages.map((url, index) => `
-        <div style="position: relative; display: inline-block; margin: 0.5rem;">
-            <img src="${url}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: ${index === 0 ? '3px solid #3B82F6' : '2px solid #E5E7EB'};">
-            <button onclick="removeImage(${index})" style="position: absolute; top: -8px; right: -8px; background: #EF4444; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold;">×</button>
-            ${index === 0 ? '<div style="text-align: center; color: #3B82F6; font-size: 0.75rem; font-weight: 600; margin-top: 4px;">Primary</div>' : `<button onclick="setPrimaryImage(${index})" style="margin-top: 4px; padding: 2px 8px; font-size: 0.75rem; background: white; border: 1px solid #3B82F6; color: #3B82F6; border-radius: 4px; cursor: pointer;">Set Primary</button>`}
+        <div class="image-preview-item ${index === 0 ? 'primary' : ''}">
+            <img src="${url}" alt="Product image ${index + 1}">
+            <button class="image-remove-btn" onclick="removeImage(${index})">×</button>
+            ${index === 0 
+                ? '<div class="image-primary-badge">✓ Primary Image</div>' 
+                : `<button class="image-set-primary-btn" onclick="setPrimaryImage(${index})">Set as Primary</button>`
+            }
         </div>
     `).join("");
 }
@@ -271,16 +279,27 @@ document.getElementById("add-variant-btn")?.addEventListener("click", () => {
 function updateVariantsDisplay() {
     const container = document.getElementById("variants-container");
     if (productVariants.length === 0) {
-        container.innerHTML = '<p style="color: #6B7280;">No variants added</p>';
+        container.innerHTML = '';
         return;
     }
     
     container.innerHTML = productVariants.map((variant, index) => `
-        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 0.5rem; margin-bottom: 0.5rem; align-items: center;">
-            <input type="text" placeholder="Variant name" value="${variant.name}" onchange="updateVariant(${index}, 'name', this.value)" style="padding: 0.5rem; border: 1px solid #E5E7EB; border-radius: 4px;">
-            <input type="number" placeholder="Price" value="${variant.price}" onchange="updateVariant(${index}, 'price', this.value)" style="padding: 0.5rem; border: 1px solid #E5E7EB; border-radius: 4px;">
-            <input type="number" placeholder="Stock" value="${variant.stock}" onchange="updateVariant(${index}, 'stock', this.value)" style="padding: 0.5rem; border: 1px solid #E5E7EB; border-radius: 4px;">
-            <button onclick="removeVariant(${index})" style="background: #EF4444; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Remove</button>
+        <div class="variant-card">
+            <div class="variant-inputs">
+                <div class="form-group" style="margin: 0;">
+                    <label style="font-size: 0.875rem;">Variant Name</label>
+                    <input type="text" placeholder="e.g. Red, Large, 64GB" value="${variant.name}" onchange="updateVariant(${index}, 'name', this.value)" style="padding: 0.75rem;">
+                </div>
+                <div class="form-group" style="margin: 0;">
+                    <label style="font-size: 0.875rem;">Price</label>
+                    <input type="number" step="0.01" placeholder="99.99" value="${variant.price}" onchange="updateVariant(${index}, 'price', this.value)" style="padding: 0.75rem;">
+                </div>
+                <div class="form-group" style="margin: 0;">
+                    <label style="font-size: 0.875rem;">Stock</label>
+                    <input type="number" placeholder="0" value="${variant.stock}" onchange="updateVariant(${index}, 'stock', this.value)" style="padding: 0.75rem;">
+                </div>
+            </div>
+            <button class="variant-remove-btn" onclick="removeVariant(${index})">🗑️ Remove Variant</button>
         </div>
     `).join("");
 }
