@@ -1,4 +1,4 @@
-// app.js - Main frontend functionality
+// app.js - DEBUG VERSION - Will show console logs
 // NOTE: Supabase client is already initialized in config.js
 
 // Shopping cart
@@ -14,12 +14,23 @@ function updateCartCount() {
     }
 }
 
-// Load featured products on homepage - FIXED
+// Load featured products on homepage - DEBUG VERSION
 async function loadFeaturedProducts() {
+    console.log('🔍 DEBUG: loadFeaturedProducts() called');
+    
     const container = document.getElementById('featured-products-grid');
-    if (!container) return;
+    console.log('🔍 DEBUG: Container found?', !!container);
+    
+    if (!container) {
+        console.log('❌ DEBUG: No container with id "featured-products-grid" found!');
+        return;
+    }
+    
+    console.log('🔍 DEBUG: Checking if supabase exists...', typeof supabase);
     
     try {
+        console.log('🔍 DEBUG: Starting Supabase query...');
+        
         // Get ONLY active, non-deleted featured products
         const { data: products, error } = await supabase
             .from('products')
@@ -30,19 +41,31 @@ async function loadFeaturedProducts() {
             .order('featured_order', { ascending: true })
             .limit(3);
         
+        console.log('🔍 DEBUG: Query completed!');
+        console.log('🔍 DEBUG: Error?', error);
+        console.log('🔍 DEBUG: Products returned:', products);
+        console.log('🔍 DEBUG: Number of products:', products ? products.length : 0);
+        
         if (error) {
-            console.error('Error loading featured products:', error);
-            container.innerHTML = '<p style="text-align: center; color: #6B7280; grid-column: 1/-1;">Error loading products</p>';
+            console.error('❌ DEBUG: Error loading featured products:', error);
+            container.innerHTML = '<p style="text-align: center; color: #EF4444; grid-column: 1/-1;">Error: ' + error.message + '</p>';
             return;
         }
         
         if (!products || products.length === 0) {
+            console.log('⚠️ DEBUG: No featured products found in database!');
             container.innerHTML = '<p style="text-align: center; color: #6B7280; grid-column: 1/-1;">No featured products available</p>';
             return;
         }
         
-        container.innerHTML = products.map(product => {
+        console.log('✅ DEBUG: Building HTML for', products.length, 'products');
+        
+        container.innerHTML = products.map((product, index) => {
+            console.log('🔍 DEBUG: Product', index + 1, ':', product.name);
+            
             const imageUrl = product.images?.[0] || product.image_url || '';
+            console.log('  - Image URL:', imageUrl);
+            
             const stockText = product.track_inventory === false ? 'In Stock' : 
                              product.stock > 0 ? `${product.stock} in stock` : 'Out of Stock';
             
@@ -67,9 +90,12 @@ async function loadFeaturedProducts() {
                 </div>
             `;
         }).join('');
+        
+        console.log('✅ DEBUG: HTML inserted into container!');
+        
     } catch (error) {
-        console.error('Fatal error loading featured products:', error);
-        container.innerHTML = '<p style="text-align: center; color: #EF4444; grid-column: 1/-1;">Failed to load products. Please refresh the page.</p>';
+        console.error('❌ DEBUG: Fatal error loading featured products:', error);
+        container.innerHTML = '<p style="text-align: center; color: #EF4444; grid-column: 1/-1;">Fatal error: ' + error.message + '</p>';
     }
 }
 
@@ -367,11 +393,16 @@ function prevTestimonial() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🔍 DEBUG: DOMContentLoaded fired!');
+    
     updateCartCount();
     
     // Load content based on page
     if (document.getElementById('featured-products-grid')) {
+        console.log('🔍 DEBUG: Found featured-products-grid, calling loadFeaturedProducts()');
         loadFeaturedProducts();
+    } else {
+        console.log('🔍 DEBUG: No featured-products-grid found on this page');
     }
     
     if (document.getElementById('all-products-grid')) {
