@@ -6,7 +6,7 @@
     <title>The Phone Gesheft - Browser-Free Phones for Focused Living</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        /* Enhanced animations from the design */
+        /* Enhanced animations */
         @keyframes fadeInUp {
             from {
                 opacity: 0;
@@ -16,11 +16,6 @@
                 opacity: 1;
                 transform: translateY(0);
             }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
         }
 
         @keyframes float {
@@ -39,11 +34,12 @@
             }
         }
 
-        /* Hero enhancements */
+        /* Hero with extended gradient */
         .hero {
             background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
             position: relative;
             overflow: hidden;
+            padding: 6rem 0 8rem 0; /* Extended bottom padding */
         }
 
         .hero::before {
@@ -57,23 +53,50 @@
             opacity: 0.3;
         }
 
+        /* Purple gradient extension into next section */
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -100px;
+            left: 0;
+            right: 0;
+            height: 150px;
+            background: linear-gradient(180deg, rgba(102, 126, 234, 0.3) 0%, rgba(102, 126, 234, 0.1) 50%, transparent 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
         .hero-content {
             position: relative;
-            z-index: 1;
+            z-index: 2;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
             animation: fadeInUp 0.8s ease-out;
         }
 
         .hero-content h1 {
-            animation: fadeInUp 0.8s ease-out 0.2s both;
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 1.5rem;
             text-shadow: 0 2px 20px rgba(0,0,0,0.2);
+            text-align: center;
         }
 
         .hero-content p {
-            animation: fadeInUp 0.8s ease-out 0.4s both;
+            font-size: 1.25rem;
+            color: rgba(255,255,255,0.95);
+            margin-bottom: 2.5rem;
+            line-height: 1.8;
+            text-align: center;
         }
 
         .hero-buttons {
-            animation: fadeInUp 0.8s ease-out 0.6s both;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            align-items: center;
         }
 
         /* Floating phone illustration */
@@ -84,28 +107,35 @@
             transform: translateY(-50%);
             opacity: 0.1;
             animation: float 6s ease-in-out infinite;
+            z-index: 1;
         }
 
-        /* Trust badges modern design */
+        /* Trust badges */
         .trust-badges {
-            background: linear-gradient(to bottom, white 0%, #F9FAFB 100%);
+            background: white;
+            padding: 4rem 0;
             position: relative;
+            z-index: 2;
         }
 
-        .trust-badges::before {
-            content: '';
-            position: absolute;
-            top: -50px;
-            left: 0;
-            right: 0;
-            height: 50px;
-            background: white;
-            transform: skewY(-1deg);
+        .badges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         .badge {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
             animation: scaleIn 0.5s ease-out backwards;
-            transition: transform 0.3s ease;
         }
 
         .badge:nth-child(1) { animation-delay: 0.1s; }
@@ -115,9 +145,14 @@
 
         .badge:hover {
             transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
         }
 
         .badge svg {
+            width: 48px;
+            height: 48px;
+            color: #667EEA;
+            flex-shrink: 0;
             transition: transform 0.3s ease;
         }
 
@@ -125,13 +160,34 @@
             transform: scale(1.1) rotate(5deg);
         }
 
-        /* Featured products section enhancement */
+        .badge div {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .badge strong {
+            font-size: 1.125rem;
+            color: #111827;
+        }
+
+        .badge span {
+            color: #6B7280;
+            font-size: 0.875rem;
+        }
+
+        /* Featured Products */
         .featured-products {
-            background: white;
-            position: relative;
+            padding: 5rem 0;
+            background: #F9FAFB;
         }
 
         .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #111827;
+            margin-bottom: 3rem;
+            text-align: center;
             position: relative;
             display: inline-block;
         }
@@ -148,20 +204,20 @@
             border-radius: 2px;
         }
 
-        /* Product cards hover effect */
-        #featured-grid .product-card {
+        /* Product cards hover */
+        .product-card {
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        #featured-grid .product-card:hover {
+        .product-card:hover {
             transform: translateY(-8px) scale(1.02);
             box-shadow: 0 20px 40px rgba(0,0,0,0.15);
         }
 
-        /* Enhanced testimonials with SMOOTH FADE */
+        /* Testimonials - CROSSFADE */
         .testimonials-section {
+            padding: 5rem 0;
             background: white;
-            position: relative;
         }
 
         .testimonials-slider {
@@ -183,11 +239,10 @@
             right: 0;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.6s ease-in-out, visibility 0.6s;
-            background: white;
-            padding: 2.5rem;
+            transition: opacity 0.6s ease-in-out;
+            padding: 3rem;
+            background: #F9FAFB;
             border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             text-align: center;
         }
 
@@ -273,8 +328,12 @@
             border-radius: 6px;
         }
 
-        /* CTA improvements */
+        /* CTA Section */
         .cta-section {
+            padding: 5rem 0;
+            background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+            text-align: center;
+            color: white;
             position: relative;
         }
 
@@ -294,7 +353,19 @@
             z-index: 1;
         }
 
-        /* Button enhancements with ripple effect */
+        .cta-section h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .cta-section p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+        }
+
+        /* Button ripple effect */
         .btn {
             position: relative;
             overflow: hidden;
@@ -318,10 +389,22 @@
             height: 300px;
         }
 
-        /* Responsive improvements */
+        /* Responsive */
         @media (max-width: 768px) {
             .hero-illustration {
                 display: none;
+            }
+
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+            }
+
+            .badges-grid {
+                grid-template-columns: 1fr;
             }
 
             .testimonials-slider {
@@ -437,7 +520,9 @@
     <!-- Featured Products -->
     <section class="featured-products">
         <div class="container">
-            <h2 class="section-title" style="text-align: center;">Featured Products</h2>
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <h2 class="section-title">Featured Products</h2>
+            </div>
             <div id="featured-grid" class="product-grid"></div>
         </div>
     </section>
@@ -445,10 +530,12 @@
     <!-- Testimonials -->
     <section class="testimonials-section">
         <div class="container">
-            <h2 class="section-title" style="text-align: center;">What Our Customers Say</h2>
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <h2 class="section-title">What Our Customers Say</h2>
+            </div>
             
             <div class="testimonials-slider">
-                <button class="slider-btn prev" onclick="slideTestimonial(-1)">‹</button>
+                <button class="slider-btn prev" onclick="changeSlide(-1)">‹</button>
                 
                 <div class="testimonials-track">
                     <div class="testimonial-card active">
@@ -479,7 +566,7 @@
                     </div>
                 </div>
                 
-                <button class="slider-btn next" onclick="slideTestimonial(1)">›</button>
+                <button class="slider-btn next" onclick="changeSlide(1)">›</button>
             </div>
             
             <div class="slider-dots" id="slider-dots"></div>
@@ -546,38 +633,42 @@
     <script>
         document.getElementById("copyright-year").textContent = new Date().getFullYear();
 
-        // Testimonials slider with SMOOTH FADE
-        let currentTestimonial = 0;
-        const testimonials = document.querySelectorAll('.testimonial-card');
+        // FIXED TESTIMONIAL SLIDER
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.testimonial-card');
+        const totalSlides = slides.length;
         const dotsContainer = document.getElementById('slider-dots');
 
         // Create dots
-        testimonials.forEach((_, index) => {
+        for (let i = 0; i < totalSlides; i++) {
             const dot = document.createElement('div');
-            dot.className = 'dot' + (index === 0 ? ' active' : '');
-            dot.onclick = () => goToTestimonial(index);
+            dot.className = 'dot' + (i === 0 ? ' active' : '');
+            dot.onclick = () => showSlide(i);
             dotsContainer.appendChild(dot);
-        });
-
-        function slideTestimonial(direction) {
-            currentTestimonial += direction;
-            if (currentTestimonial < 0) currentTestimonial = testimonials.length - 1;
-            if (currentTestimonial >= testimonials.length) currentTestimonial = 0;
-            goToTestimonial(currentTestimonial);
         }
 
-        function goToTestimonial(index) {
-            currentTestimonial = index;
-            testimonials.forEach((card, i) => {
-                card.classList.toggle('active', i === index);
+        function changeSlide(direction) {
+            currentSlide = (currentSlide + direction + totalSlides) % totalSlides;
+            showSlide(currentSlide);
+        }
+
+        function showSlide(index) {
+            currentSlide = index;
+            
+            // Update slides
+            slides.forEach((slide, i) => {
+                slide.classList.toggle('active', i === index);
             });
-            document.querySelectorAll('.dot').forEach((dot, i) => {
+            
+            // Update dots
+            const dots = document.querySelectorAll('.dot');
+            dots.forEach((dot, i) => {
                 dot.classList.toggle('active', i === index);
             });
         }
 
-        // Auto-rotate testimonials every 5 seconds
-        setInterval(() => slideTestimonial(1), 5000);
+        // Auto-rotate every 5 seconds
+        setInterval(() => changeSlide(1), 5000);
     </script>
 </body>
 </html>
