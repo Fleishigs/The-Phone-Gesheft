@@ -154,6 +154,48 @@ exports.handler = async (event) => {
     }
   }
 
+  // 🔥 HANDLE REFUNDS
+  if (stripeEvent.type === 'charge.refunded') {
+    const charge = stripeEvent.data.object;
+    const paymentIntent = charge.payment_intent;
+    
+    try {
+      console.log('Refund detected for payment intent:', paymentIntent);
+      
+      // Find order by payment intent and update status
+      const { data: orders, error: findError } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('stripe_payment_intent', paymentIntent);
+      
+      if (findError) {
+        console.error('Error finding order:', findError);
+      } else if (orders && orders.length > 0) {
+        // Update all matching orders to refunded
+        for (const order of orders) {
+          const { error: updateError } = await supabase
+            .from('orders')
+            .update({ 
+              status: 'refunded',
+              refunded_at: new Date().toISOString()
+            })
+            .eq('id', order.id);
+          
+          if (updateError) {
+            console.error('Error updating order:', updateError);
+          } else {
+            console.log(`Order #${order.id} marked as refunded`);
+          }
+        }
+      } else {
+        console.log('No orders found for this payment intent');
+      }
+    } catch (error) {
+      console.error('Error processing refund:', error);
+      // Don't fail the webhook if refund processing fails
+    }
+  }
+
   return {
     statusCode: 200,
     body: JSON.stringify({ received: true })
