@@ -961,12 +961,51 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
-    <script src="admin.js"></script>
     
     <script>
         // ============================================
-        // CLEAN COLLAPSIBLE ADMIN WITH FILTERS
+        // FIXED: Order Management - Standalone
         // ============================================
+        
+        // Login functionality
+        document.getElementById('login-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('admin-email').value;
+            const password = document.getElementById('admin-password').value;
+            
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) throw error;
+                
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('admin-dashboard').style.display = 'flex';
+                startAutoSync();
+            } catch (error) {
+                document.getElementById('login-error').textContent = error.message;
+                document.getElementById('login-error').style.display = 'block';
+            }
+        });
+        
+        // Logout functionality  
+        document.getElementById('logout-btn')?.addEventListener('click', async () => {
+            stopAutoSync();
+            await supabase.auth.signOut();
+            document.getElementById('admin-dashboard').style.display = 'none';
+            document.getElementById('login-screen').style.display = 'flex';
+        });
+        
+        // Check if already logged in
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('admin-dashboard').style.display = 'flex';
+                startAutoSync();
+            }
+        });
         
         let selectedOrderId = null;
         let syncInterval = null;
@@ -1060,6 +1099,11 @@
             document.getElementById('stat-orders').textContent = totalOrders;
             document.getElementById('stat-revenue').textContent = `$${totalRevenue.toFixed(2)}`;
             document.getElementById('stat-pending').textContent = pendingShip;
+            
+            // Load product count
+            supabase.from('products').select('id', { count: 'exact' }).then(({ count }) => {
+                document.getElementById('stat-products').textContent = count || 0;
+            });
             
             displayRecentOrders(orders.slice(0, 5));
         }
@@ -1415,21 +1459,33 @@
             });
         });
 
+        // Stub functions for product management
+        // These will be implemented later or you can use your existing admin.js functions
+        async function loadProducts() {
+            document.getElementById('products-grid').innerHTML = '<p>Loading products...</p>';
+            // TODO: Load from your existing admin.js or implement here
+        }
+
+        async function loadFeaturedManager() {
+            document.getElementById('featured-products-manager').innerHTML = '<p>Loading featured products...</p>';
+            // TODO: Load from your existing admin.js or implement here
+        }
+
+        async function loadCategories() {
+            document.getElementById('categories-table').innerHTML = '<p>Loading categories...</p>';
+            // TODO: Load from your existing admin.js or implement here
+        }
+
+        async function loadTags() {
+            document.getElementById('tags-table').innerHTML = '<p>Loading tags...</p>';
+            // TODO: Load from your existing admin.js or implement here
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const dashboard = document.getElementById('admin-dashboard');
             if (dashboard && dashboard.style.display !== 'none') {
                 startAutoSync();
             }
-        });
-
-        const originalLoadDashboard = window.loadDashboard;
-        window.loadDashboard = async function() {
-            if (originalLoadDashboard) await originalLoadDashboard();
-            startAutoSync();
-        };
-
-        document.getElementById('logout-btn')?.addEventListener('click', () => {
-            stopAutoSync();
         });
     </script>
 </body>
