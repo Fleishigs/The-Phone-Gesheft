@@ -1,18 +1,15 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { createClient } = require('@supabase/supabase-js');
-const { Resend } = require('resend');
+const Resend = require('resend').Resend;
 
-const supabaseUrl = 'https://xfswosnhewblxdtvtbcz.supabase.co';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 exports.handler = async (event) => {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method Not Allowed' };
-  }
-
   const sig = event.headers['stripe-signature'];
   let stripeEvent;
 
@@ -27,319 +24,292 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: `Webhook Error: ${err.message}` };
   }
 
+  console.log('Received webhook event type:', stripeEvent.type);
+
+  // Handle checkout.session.completed
   if (stripeEvent.type === 'checkout.session.completed') {
     const session = stripeEvent.data.object;
-    
+
     try {
-      // Retrieve full session with shipping details (webhook event sometimes has incomplete data)
+      // Retrieve the full session with expanded data to get shipping details
       const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
-        expand: ['line_items', 'customer']
+        expand: ['line_items', 'line_items.data.price.product']
       });
-      
-      console.log('Full session retrieved:', fullSession.id);
-      
-      // Get line items from the session
-      const lineItems = await stripe.checkout.sessions.listLineItems(fullSession.id);
-      
-      // Get shipping and customer details from FULL session
-      const shippingDetails = fullSession.shipping_details || fullSession.shipping || {};
-      const customerDetails = fullSession.customer_details || {};
+
+      const lineItem = fullSession.line_items.data[0];
+      const product = lineItem.price.product;
+
+      // Extract shipping address from the session
+      const shippingDetails = fullSession.shipping_details || {};
       const shippingAddress = shippingDetails.address || {};
       
-      // Log for debugging
-      console.log('Shipping Details:', JSON.stringify(shippingDetails));
-      console.log('Customer Details:', JSON.stringify(customerDetails));
+      console.log('Creating order with status: pending_shipment');
       
-      // Process each line item
-      for (const item of lineItems.data) {
-        const productName = item.description;
-        
-        // Try to find matching product by name
-        const { data: products } = await supabase
-          .from('products')
-          .select('*')
-          .eq('name', productName)
-          .limit(1);
-        
-        if (products && products.length > 0) {
-          const product = products[0];
-          
-          // Decrease stock if tracking inventory
-          if (product.track_inventory !== false && product.stock > 0) {
-            const newStock = Math.max(0, product.stock - item.quantity);
-            await supabase
-              .from('products')
-              .update({ stock: newStock })
-              .eq('id', product.id);
-            
-            console.log(`Product ${product.id}: Stock decreased to ${newStock}`);
-          }
-          
-          // Save order to database
-          const customerName = shippingDetails.name || customerDetails.name || 'Guest';
-          const customerEmail = customerDetails.email || session.customer_email || 'unknown@email.com';
-          const customerPhone = customerDetails.phone || shippingDetails.phone || null;
-          
-          // Build shipping address object
-          const fullShippingAddress = {
-            name: shippingDetails.name || customerName,
-            line1: shippingAddress.line1 || '',
-            line2: shippingAddress.line2 || '',
-            city: shippingAddress.city || '',
-            state: shippingAddress.state || '',
-            postal_code: shippingAddress.postal_code || '',
-            country: shippingAddress.country || '',
-          };
-          
-          console.log('Saving shipping address:', JSON.stringify(fullShippingAddress));
-          
-          const orderData = {
-            product_id: product.id,
-            product_name: product.name,
-            product_price: product.price,
-            product_image: product.images && product.images.length > 0 ? product.images[0] : product.image_url,
-            quantity: item.quantity,
-            total_price: session.amount_total / 100,
-            customer_email: customerEmail,
-            customer_name: customerName,
-            customer_phone: customerPhone,
-            shipping_address: fullShippingAddress,
-            shipping_name: shippingDetails.name || customerName,
-            stripe_session_id: session.id,
-            stripe_payment_intent: session.payment_intent,
-            stripe_customer_id: session.customer,
-            status: 'completed',
-            metadata: {
-              checkout_session_url: session.url,
-              payment_status: session.payment_status,
-              amount_subtotal: session.amount_subtotal / 100,
-              amount_total: session.amount_total / 100,
-              currency: session.currency,
-            }
-          };
+      // Save order to database - STATUS IS PENDING_SHIPMENT
+      const orderData = {
+        stripe_session_id: session.id,
+        stripe_payment_intent: session.payment_intent,
+        customer_email: session.customer_details.email,
+        customer_name: session.customer_details.name,
+        customer_phone: session.customer_details.phone,
+        shipping_name: shippingDetails.name,
+        shipping_address: shippingAddress,
+        product_name: product.name,
+        product_price: lineItem.price.unit_amount / 100,
+        quantity: lineItem.quantity,
+        total_price: session.amount_total / 100,
+        status: 'pending_shipment', // CRITICAL: This MUST be pending_shipment
+        created_at: new Date().toISOString()
+      };
 
-          const { data: savedOrder, error: saveError } = await supabase
-            .from('orders')
-            .insert([orderData])
-            .select()
-            .single();
-          
-          if (saveError) {
-            console.error('Error saving order:', saveError);
-          } else {
-            console.log(`Order saved for product ${product.id}`);
-            
-            // 🔥 SEND EMAIL TO CUSTOMER
-            try {
-              await sendOrderConfirmationEmail(savedOrder);
-              console.log('Customer email sent successfully');
-            } catch (emailError) {
-              console.error('Failed to send customer email:', emailError);
-            }
-            
-            // 🔥 SEND EMAIL TO ADMIN
-            try {
-              await sendAdminNotificationEmail(savedOrder);
-              console.log('Admin email sent successfully');
-            } catch (emailError) {
-              console.error('Failed to send admin email:', emailError);
-            }
-          }
-        }
+      console.log('Order data to insert:', JSON.stringify(orderData, null, 2));
+
+      const { data, error } = await supabase
+        .from('orders')
+        .insert([orderData])
+        .select();
+
+      if (error) {
+        console.error('Database error:', error);
+        return { statusCode: 500, body: 'Database error' };
       }
-      
-    } catch (error) {
-      console.error('Error processing order:', error);
-      return { statusCode: 500, body: 'Error processing order' };
+
+      console.log('Order created successfully with ID:', data[0].id, 'Status:', data[0].status);
+
+      // Send order confirmation email to customer
+      await sendOrderConfirmationEmail({
+        email: session.customer_details.email,
+        name: session.customer_details.name,
+        orderNumber: data[0].id,
+        productName: product.name,
+        quantity: lineItem.quantity,
+        total: session.amount_total / 100,
+        shippingAddress: {
+          name: shippingDetails.name,
+          line1: shippingAddress.line1,
+          line2: shippingAddress.line2,
+          city: shippingAddress.city,
+          state: shippingAddress.state,
+          postal_code: shippingAddress.postal_code,
+          country: shippingAddress.country
+        }
+      });
+
+      // Send admin notification email
+      await sendAdminNotificationEmail({
+        orderNumber: data[0].id,
+        customerName: session.customer_details.name,
+        customerEmail: session.customer_details.email,
+        customerPhone: session.customer_details.phone,
+        productName: product.name,
+        quantity: lineItem.quantity,
+        total: session.amount_total / 100,
+        shippingAddress: {
+          name: shippingDetails.name,
+          line1: shippingAddress.line1,
+          line2: shippingAddress.line2,
+          city: shippingAddress.city,
+          state: shippingAddress.state,
+          postal_code: shippingAddress.postal_code,
+          country: shippingAddress.country
+        }
+      });
+
+      console.log('Order processing complete');
+      return { statusCode: 200, body: JSON.stringify({ success: true, order_id: data[0].id, status: data[0].status }) };
+    } catch (err) {
+      console.error('Error processing checkout:', err);
+      return { statusCode: 500, body: 'Error processing checkout' };
     }
   }
 
-  // 🔥 HANDLE REFUNDS
+  // Handle charge.refunded - auto-update order status when refunded
   if (stripeEvent.type === 'charge.refunded') {
     const charge = stripeEvent.data.object;
     const paymentIntent = charge.payment_intent;
-    
+
+    console.log('Processing refund for payment intent:', paymentIntent);
+
     try {
-      console.log('Refund detected for payment intent:', paymentIntent);
-      
-      // Find order by payment intent and update status
-      const { data: orders, error: findError } = await supabase
+      const { data: updatedOrders, error } = await supabase
         .from('orders')
-        .select('*')
-        .eq('stripe_payment_intent', paymentIntent);
-      
-      if (findError) {
-        console.error('Error finding order:', findError);
-      } else if (orders && orders.length > 0) {
-        // Update all matching orders to refunded
-        for (const order of orders) {
-          const { error: updateError } = await supabase
-            .from('orders')
-            .update({ 
-              status: 'refunded',
-              refunded_at: new Date().toISOString()
-            })
-            .eq('id', order.id);
-          
-          if (updateError) {
-            console.error('Error updating order:', updateError);
-          } else {
-            console.log(`Order #${order.id} marked as refunded`);
-          }
-        }
-      } else {
-        console.log('No orders found for this payment intent');
+        .update({
+          status: 'refunded',
+          refunded_at: new Date().toISOString()
+        })
+        .eq('stripe_payment_intent', paymentIntent)
+        .select();
+
+      if (error) {
+        console.error('Database error updating refund:', error);
+        return { statusCode: 500, body: 'Database error' };
       }
-    } catch (error) {
-      console.error('Error processing refund:', error);
-      // Don't fail the webhook if refund processing fails
+
+      console.log('Orders updated to refunded:', updatedOrders);
+      return { statusCode: 200, body: JSON.stringify({ success: true, refunded_orders: updatedOrders }) };
+    } catch (err) {
+      console.error('Error processing refund:', err);
+      return { statusCode: 500, body: 'Error processing refund' };
     }
   }
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify({ received: true })
-  };
+  return { statusCode: 200, body: 'Event received' };
 };
 
-// 📧 SEND ORDER CONFIRMATION TO CUSTOMER
-async function sendOrderConfirmationEmail(order) {
-  const address = order.shipping_address || {};
-  
-  await resend.emails.send({
-    from: 'The Phone Gesheft <orders@thephonegesheft.com>',
-    to: order.customer_email,
-    subject: `Order Confirmation #${order.id} - The Phone Gesheft`,
-    html: `
-<!DOCTYPE html>
-<html>
-<head>
-  <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
-    .container { max-width: 600px; margin: 0 auto; }
-    .header { background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%); color: white; padding: 30px; text-align: center; }
-    .content { padding: 30px; background: #fff; }
-    .order-box { background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0; }
-    .total { font-size: 1.5rem; font-weight: bold; color: #3B82F6; margin-top: 20px; }
-    .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 0.875rem; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>✅ Order Confirmed!</h1>
-      <p>Order #${order.id}</p>
-    </div>
-    
-    <div class="content">
-      <p>Hi ${order.customer_name},</p>
-      <p>Thank you for your order! We'll ship it out within 24-48 hours.</p>
-      
-      <div class="order-box">
-        <h3>Order Details</h3>
-        <p><strong>Product:</strong> ${order.product_name}</p>
-        <p><strong>Quantity:</strong> ${order.quantity}</p>
-        <p><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleDateString()}</p>
-      </div>
-      
-      <div class="order-box">
-        <h3>Shipping To</h3>
-        <p>
-          ${address.name || order.shipping_name}<br>
-          ${address.line1}<br>
-          ${address.line2 ? address.line2 + '<br>' : ''}
-          ${address.city}, ${address.state} ${address.postal_code}<br>
-          ${address.country}
-        </p>
-      </div>
-      
-      <div class="total">
-        Total: $${order.total_price.toFixed(2)}
-      </div>
-      
-      <p style="margin-top: 30px;">You'll receive another email with tracking once your order ships!</p>
-      
-      <p>Questions? Reply to this email or call us at (555) 123-4567.</p>
-    </div>
-    
-    <div class="footer">
-      <p>The Phone Gesheft - Simple phones for a focused life</p>
-      <p>© 2024 All rights reserved</p>
-    </div>
-  </div>
-</body>
-</html>
-    `
-  });
+async function sendOrderConfirmationEmail(orderData) {
+  try {
+    await resend.emails.send({
+      from: 'orders@thephonegesheft.com',
+      to: orderData.email,
+      subject: `Order Confirmation #${orderData.orderNumber} - The Phone Gesheft`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Order Confirmation</title>
+        </head>
+        <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">📱 Order Confirmed!</h1>
+            <p style="color: #f0f0f0; margin: 10px 0 0 0; font-size: 16px;">Thank you for your purchase</p>
+          </div>
+          
+          <div style="background: #fff; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 10px 10px;">
+            <p style="font-size: 16px; margin-bottom: 20px;">Hi ${orderData.name},</p>
+            
+            <p style="font-size: 16px; margin-bottom: 25px;">We've received your order and will send you another email once your item has been shipped with tracking information.</p>
+            
+            <div style="background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+              <h2 style="margin: 0 0 15px 0; color: #1f2937; font-size: 18px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">Order Details</h2>
+              
+              <table style="width: 100%; margin-bottom: 15px;">
+                <tr>
+                  <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Order Number:</td>
+                  <td style="padding: 8px 0; text-align: right; font-weight: 700; color: #3b82f6;">#${orderData.orderNumber}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Product:</td>
+                  <td style="padding: 8px 0; text-align: right;">${orderData.productName}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Quantity:</td>
+                  <td style="padding: 8px 0; text-align: right;">${orderData.quantity}</td>
+                </tr>
+                <tr style="border-top: 2px solid #e5e7eb;">
+                  <td style="padding: 12px 0; color: #1f2937; font-weight: 700; font-size: 16px;">Total:</td>
+                  <td style="padding: 12px 0; text-align: right; color: #3b82f6; font-weight: 700; font-size: 18px;">$${orderData.total.toFixed(2)}</td>
+                </tr>
+              </table>
+            </div>
+            
+            <div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px; border-radius: 4px; margin-bottom: 25px;">
+              <h3 style="margin: 0 0 10px 0; color: #1e40af; font-size: 16px;">📦 Shipping Address</h3>
+              <p style="margin: 0; line-height: 1.8;">
+                <strong>${orderData.shippingAddress.name}</strong><br>
+                ${orderData.shippingAddress.line1}<br>
+                ${orderData.shippingAddress.line2 ? orderData.shippingAddress.line2 + '<br>' : ''}
+                ${orderData.shippingAddress.city}, ${orderData.shippingAddress.state} ${orderData.shippingAddress.postal_code}<br>
+                ${orderData.shippingAddress.country}
+              </p>
+            </div>
+            
+            <p style="font-size: 14px; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+              Questions about your order? Reply to this email and we'll be happy to help!
+            </p>
+          </div>
+          
+          <div style="text-align: center; margin-top: 20px; padding: 20px; color: #9ca3af; font-size: 12px;">
+            <p style="margin: 5px 0;">The Phone Gesheft</p>
+            <p style="margin: 5px 0;">Browser-Free Phones for a Focused Life</p>
+          </div>
+        </body>
+        </html>
+      `
+    });
+    console.log('Customer confirmation email sent');
+  } catch (error) {
+    console.error('Failed to send customer email:', error);
+  }
 }
 
-// 📧 SEND NOTIFICATION TO ADMIN
-async function sendAdminNotificationEmail(order) {
-  const address = order.shipping_address || {};
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
-  
-  await resend.emails.send({
-    from: 'The Phone Gesheft <orders@thephonegesheft.com>',
-    to: adminEmail,
-    subject: `🔔 New Order #${order.id}`,
-    html: `
-<!DOCTYPE html>
-<html>
-<head>
-  <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { background: #1F2937; color: white; padding: 20px; }
-    .section { background: #f9fafb; padding: 15px; margin: 15px 0; border-radius: 8px; }
-    .highlight { background: #FEF3C7; padding: 15px; border-left: 4px solid #F59E0B; margin-top: 20px; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h2>💰 New Order Received!</h2>
-      <p>Order #${order.id}</p>
-    </div>
-    
-    <div class="section">
-      <h3>📦 SHIP TO:</h3>
-      <p style="font-size: 1.1rem; font-weight: bold;">
-        ${address.name || order.shipping_name}<br>
-        ${address.line1}<br>
-        ${address.line2 ? address.line2 + '<br>' : ''}
-        ${address.city}, ${address.state} ${address.postal_code}<br>
-        ${address.country}
-      </p>
-    </div>
-    
-    <div class="section">
-      <h3>👤 Customer Info:</h3>
-      <p>
-        <strong>Name:</strong> ${order.customer_name}<br>
-        <strong>Email:</strong> ${order.customer_email}<br>
-        <strong>Phone:</strong> ${order.customer_phone || 'Not provided'}
-      </p>
-    </div>
-    
-    <div class="section">
-      <h3>📱 Product:</h3>
-      <p>
-        <strong>${order.product_name}</strong><br>
-        Quantity: ${order.quantity}<br>
-        Price: $${order.product_price.toFixed(2)}<br>
-        <strong style="color: #3B82F6; font-size: 1.2rem;">Total: $${order.total_price.toFixed(2)}</strong>
-      </p>
-    </div>
-    
-    <div class="highlight">
-      <strong>⚡ Next Steps:</strong><br>
-      1. Package the item<br>
-      2. Print shipping label<br>
-      3. Go to /orders-management to mark as shipped
-    </div>
-  </div>
-</body>
-</html>
-    `
-  });
+async function sendAdminNotificationEmail(orderData) {
+  try {
+    await resend.emails.send({
+      from: 'orders@thephonegesheft.com',
+      to: process.env.ADMIN_EMAIL,
+      subject: `🚨 New Order #${orderData.orderNumber} - Action Required`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>New Order</title>
+        </head>
+        <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: #10b981; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">🎉 New Order!</h1>
+            <p style="color: #f0fdf9; margin: 10px 0 0 0; font-size: 16px;">Order #${orderData.orderNumber}</p>
+          </div>
+          
+          <div style="background: #fff; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 10px 10px;">
+            <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 4px; margin-bottom: 25px;">
+              <p style="margin: 0; color: #92400e; font-weight: 600;">⚠️ Order Awaiting Shipment - Please process and ship soon!</p>
+            </div>
+            
+            <h2 style="margin: 0 0 15px 0; color: #1f2937; font-size: 18px;">Order Summary</h2>
+            <table style="width: 100%; margin-bottom: 20px;">
+              <tr>
+                <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Customer:</td>
+                <td style="padding: 8px 0; text-align: right;">${orderData.customerName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Email:</td>
+                <td style="padding: 8px 0; text-align: right;">${orderData.customerEmail}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Phone:</td>
+                <td style="padding: 8px 0; text-align: right;">${orderData.customerPhone || 'N/A'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Product:</td>
+                <td style="padding: 8px 0; text-align: right;">${orderData.productName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Quantity:</td>
+                <td style="padding: 8px 0; text-align: right;">${orderData.quantity}</td>
+              </tr>
+              <tr style="border-top: 2px solid #e5e7eb;">
+                <td style="padding: 12px 0; color: #1f2937; font-weight: 700; font-size: 16px;">Total:</td>
+                <td style="padding: 12px 0; text-align: right; color: #10b981; font-weight: 700; font-size: 18px;">$${orderData.total.toFixed(2)}</td>
+              </tr>
+            </table>
+            
+            <div style="background: #dbeafe; border: 2px solid #3b82f6; padding: 20px; border-radius: 8px; margin-top: 25px;">
+              <h3 style="margin: 0 0 15px 0; color: #1e40af; font-size: 16px;">📦 SHIPPING ADDRESS</h3>
+              <div style="background: white; padding: 15px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.8;">
+                <strong style="font-size: 15px;">${orderData.shippingAddress.name}</strong><br>
+                ${orderData.shippingAddress.line1}<br>
+                ${orderData.shippingAddress.line2 ? orderData.shippingAddress.line2 + '<br>' : ''}
+                ${orderData.shippingAddress.city}, ${orderData.shippingAddress.state} ${orderData.shippingAddress.postal_code}<br>
+                ${orderData.shippingAddress.country}
+              </div>
+            </div>
+            
+            <div style="margin-top: 30px; text-align: center;">
+              <a href="https://thephonegesheft.com/admin" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; font-size: 16px;">
+                Go to Admin Dashboard →
+              </a>
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+    });
+    console.log('Admin notification email sent');
+  } catch (error) {
+    console.error('Failed to send admin email:', error);
+  }
 }

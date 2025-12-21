@@ -15,18 +15,40 @@ exports.handler = async (event) => {
       };
     }
 
-    // Retrieve payment intent from Stripe
-    const paymentIntent = await stripe.paymentIntents.retrieve(payment_intent);
+    // Retrieve payment intent from Stripe with charges expanded
+    const paymentIntent = await stripe.paymentIntents.retrieve(payment_intent, {
+      expand: ['charges.data']
+    });
     
-    // Check if it has been refunded
-    const isRefunded = paymentIntent.charges.data.some(charge => charge.refunded);
+    // Check if any charge has been refunded
+    let isRefunded = false;
+    let refundAmount = 0;
+    
+    if (paymentIntent.charges && paymentIntent.charges.data.length > 0) {
+      for (const charge of paymentIntent.charges.data) {
+        if (charge.refunded || (charge.amount_refunded && charge.amount_refunded > 0)) {
+          isRefunded = true;
+          refundAmount = charge.amount_refunded / 100; // Convert from cents
+          break;
+        }
+      }
+    }
+    
+    // Also check payment intent level
+    if (paymentIntent.status === 'canceled' || 
+        (paymentIntent.amount_refunded && paymentIntent.amount_refunded > 0)) {
+      isRefunded = true;
+      refundAmount = (paymentIntent.amount_refunded || 0) / 100;
+    }
     
     return {
       statusCode: 200,
       body: JSON.stringify({
         status: isRefunded ? 'refunded' : paymentIntent.status,
         amount: paymentIntent.amount / 100,
-        refunded: isRefunded
+        refunded: isRefunded,
+        refund_amount: refundAmount,
+        payment_intent_status: paymentIntent.status
       })
     };
   } catch (error) {
