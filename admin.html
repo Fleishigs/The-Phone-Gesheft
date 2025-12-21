@@ -30,6 +30,7 @@
         }
         .status-completed { background: #DBEAFE; color: #1E40AF; }
         .status-shipped { background: #D1FAE5; color: #065F46; }
+        .status-refunded { background: #FEE2E2; color: #991B1B; }
         .status-cancelled { background: #FEE2E2; color: #991B1B; }
         
         .order-details-grid {
@@ -413,6 +414,21 @@
                                 </p>
                             </div>
                             
+                            <div class="detail-section">
+                                <h4>💳 Payment</h4>
+                                <p style="margin: 0;">
+                                    <strong>Status:</strong> ${order.status || 'completed'}<br>
+                                    <strong>Amount:</strong> $${order.total_price.toFixed(2)}<br>
+                                    ${order.stripe_payment_intent ? `
+                                        <a href="https://dashboard.stripe.com/payments/${order.stripe_payment_intent}" 
+                                           target="_blank" 
+                                           style="color: #3B82F6; text-decoration: underline;">
+                                           View in Stripe →
+                                        </a>
+                                    ` : ''}
+                                </p>
+                            </div>
+                            
                             ${order.tracking_number ? `
                                 <div class="detail-section">
                                     <h4>📬 Tracking</h4>
@@ -426,7 +442,11 @@
                         </div>
                         
                         <div class="order-actions">
-                            ${order.status !== 'shipped' ? `
+                            ${order.status === 'refunded' ? `
+                                <div style="color: #DC2626; font-weight: 600; padding: 0.75rem; background: #FEE2E2; border-radius: 6px;">
+                                    💸 Refunded on ${new Date(order.refunded_at || order.created_at).toLocaleDateString()}
+                                </div>
+                            ` : order.status !== 'shipped' ? `
                                 <button class="action-btn btn-ship" onclick="openShippingModal(${order.id})">
                                     📦 Mark as Shipped
                                 </button>
