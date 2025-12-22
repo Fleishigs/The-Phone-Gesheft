@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Phone Gesheft | Browser-Free Phones for Focused Living</title>
+    <title>The Phone Gesheft - Browser-Free Phones for Focused Living</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -27,12 +27,6 @@
             color: var(--text-dark);
             padding-top: 70px;
             overflow-x: hidden;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
         }
 
         /* === GLASS NAVIGATION === */
@@ -155,27 +149,87 @@
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
 
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.03);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* === TRUST BADGES === */
+        .trust-badges {
+            background: white;
+            padding: 4rem 0;
+        }
+
+        .badges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .badge {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .badge:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        .badge svg {
+            width: 48px;
+            height: 48px;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .badge div {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .badge strong {
+            font-size: 1.125rem;
+            color: #111827;
+        }
+
+        .badge span {
+            color: #6B7280;
+            font-size: 0.875rem;
+        }
+
         /* === FEATURED PRODUCTS === */
         .featured-products {
             padding: 100px 0;
-            background: white;
+            background: #F9FAFB;
         }
 
-        .section-header {
-            text-align: center;
-            margin-bottom: 50px;
-        }
-
-        .section-header h2 {
-            font-size: 2.2rem;
+        .section-title {
+            font-size: 2.5rem;
             font-weight: 800;
-            letter-spacing: -1px;
-            margin-bottom: 0.5rem;
-        }
-
-        .section-header p {
-            color: #64748b;
-            font-size: 1.1rem;
+            color: #111827;
+            margin-bottom: 3rem;
+            text-align: center;
         }
 
         .product-grid {
@@ -241,128 +295,157 @@
             color: white;
         }
 
-        /* === WHY CHOOSE US === */
-        .why-section {
-            padding: 100px 0;
-            background: var(--light-bg);
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 3rem;
-            margin-top: 3rem;
-        }
-
-        .feature-card {
-            text-align: center;
-            padding: 2rem;
-        }
-
-        .feature-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        .feature-card h3 {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-        }
-
-        .feature-card p {
-            color: #64748b;
-            line-height: 1.6;
-        }
-
-        /* === ABOUT SECTION === */
-        .about-section {
-            padding: 100px 0;
+        /* === TESTIMONIALS === */
+        .testimonials-section {
+            padding: 5rem 0;
             background: white;
+            position: relative;
         }
 
-        .about-content {
+        .testimonials-slider {
+            position: relative;
             max-width: 800px;
             margin: 0 auto;
+            padding: 0 60px;
+        }
+
+        .testimonials-track {
+            position: relative;
+            min-height: 300px;
+        }
+
+        .testimonial-card {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.6s ease-in-out;
+            padding: 3rem;
+            background: #F9FAFB;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             text-align: center;
         }
 
-        .about-content h2 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 1.5rem;
-            letter-spacing: -1px;
+        .testimonial-card.active {
+            opacity: 1;
+            visibility: visible;
         }
 
-        .about-content p {
-            font-size: 1.1rem;
+        .testimonial-card p {
+            font-size: 1.25rem;
+            color: #374151;
+            margin-bottom: 2rem;
+            font-style: italic;
             line-height: 1.8;
-            color: #64748b;
-            margin-bottom: 1.5rem;
         }
 
-        /* === NEWSLETTER === */
-        .newsletter-section {
-            padding: 80px 0;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        .testimonial-author {
+            font-weight: 700;
+            color: #111827;
+            font-size: 1.125rem;
+        }
+
+        .testimonial-role {
+            color: #6B7280;
+            font-size: 0.875rem;
+        }
+
+        .slider-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            border: 2px solid #E5E7EB;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .slider-btn:hover {
+            background: var(--primary);
             color: white;
-            text-align: center;
+            border-color: var(--primary);
         }
 
-        .newsletter-section h2 {
-            font-size: 2rem;
+        .slider-btn.prev {
+            left: 0;
+        }
+
+        .slider-btn.next {
+            right: 0;
+        }
+
+        .slider-dots {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-top: 2rem;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #D1D5DB;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .dot.active {
+            background: var(--primary);
+            width: 32px;
+            border-radius: 6px;
+        }
+
+        /* === CTA SECTION === */
+        .cta-section {
+            padding: 5rem 0;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+
+        .cta-section h2 {
+            font-size: 2.5rem;
             font-weight: 800;
             margin-bottom: 1rem;
         }
 
-        .newsletter-form {
-            max-width: 500px;
-            margin: 2rem auto 0;
-            display: flex;
-            gap: 1rem;
-        }
-
-        .newsletter-form input {
-            flex: 1;
-            padding: 1rem 1.5rem;
-            border: none;
-            border-radius: 100px;
-            font-size: 1rem;
-        }
-
-        .newsletter-form button {
-            padding: 1rem 2rem;
-            background: white;
-            color: var(--primary);
-            border: none;
-            border-radius: 100px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .newsletter-form button:hover {
-            transform: scale(1.05);
+        .cta-section p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
         }
 
         /* === FOOTER === */
         .main-footer {
-            background: #F8FAFC;
-            padding: 60px 0 30px;
-            border-top: 1px solid #E2E8F0;
+            background: #1F2937;
+            color: white;
+            padding: 4rem 0 2rem;
         }
 
         .footer-grid {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 3rem;
             margin-bottom: 3rem;
         }
 
-        .footer-column h3 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
+        .footer-column h4 {
+            font-size: 1.125rem;
+            margin-bottom: 1.25rem;
+            color: white;
         }
 
         .footer-column ul {
@@ -374,40 +457,20 @@
         }
 
         .footer-column ul li a {
-            color: #64748b;
+            color: #9CA3AF;
             text-decoration: none;
             transition: color 0.2s;
         }
 
         .footer-column ul li a:hover {
-            color: var(--primary);
+            color: white;
         }
 
         .footer-bottom {
+            border-top: 1px solid #374151;
             padding-top: 2rem;
-            border-top: 1px solid #E2E8F0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .footer-bottom p {
-            color: #64748b;
-            font-size: 0.9rem;
-        }
-
-        .social-links {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .social-links a {
-            color: #64748b;
-            transition: color 0.2s;
-        }
-
-        .social-links a:hover {
-            color: var(--primary);
+            text-align: center;
+            color: #9CA3AF;
         }
 
         /* === RESPONSIVE === */
@@ -422,19 +485,22 @@
                 display: none;
             }
 
-            .footer-grid {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .badges-grid {
                 grid-template-columns: 1fr;
-                gap: 2rem;
             }
 
-            .footer-bottom {
-                flex-direction: column;
-                gap: 1rem;
-                text-align: center;
+            .testimonials-slider {
+                padding: 0 20px;
             }
 
-            .newsletter-form {
-                flex-direction: column;
+            .slider-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1.25rem;
             }
         }
     </style>
@@ -469,78 +535,104 @@
     <!-- CURVY HERO -->
     <section class="hero">
         <div class="hero-container">
-            <h1>Browser-Free Phones<br>for Focused Living</h1>
-            <p>Break free from endless scrolling. Our carefully curated collection of browser-free smartphones helps you reclaim your time and attention.</p>
+            <h1>Simple Phones for<br>a Focused Life</h1>
+            <p>Break free from endless scrolling and notifications. Discover phones designed for real connections and intentional living.</p>
             <a href="/products" class="btn btn-white">Shop Now</a>
+        </div>
+    </section>
+
+    <!-- TRUST BADGES -->
+    <section class="trust-badges">
+        <div class="container">
+            <div class="badges-grid">
+                <div class="badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    <div>
+                        <strong>Secure Shopping</strong>
+                        <span>256-bit SSL encryption</span>
+                    </div>
+                </div>
+                <div class="badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    <div>
+                        <strong>Expert Support</strong>
+                        <span>We're here to help</span>
+                    </div>
+                </div>
+                <div class="badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                        <line x1="1" y1="10" x2="23" y2="10"/>
+                    </svg>
+                    <div>
+                        <strong>Easy Returns</strong>
+                        <span>30-day money back</span>
+                    </div>
+                </div>
+                <div class="badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                    <div>
+                        <strong>Trusted by Families</strong>
+                        <span>Thousands of happy customers</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
     <!-- FEATURED PRODUCTS -->
     <section class="featured-products">
         <div class="container">
-            <div class="section-header">
-                <h2>Featured Phones</h2>
-                <p>Hand-picked devices for a distraction-free life</p>
-            </div>
+            <h2 class="section-title">Featured Products</h2>
             <div id="featured-grid" class="product-grid">
                 <!-- Products loaded by app.js -->
             </div>
         </div>
     </section>
 
-    <!-- WHY CHOOSE US -->
-    <section class="why-section">
+    <!-- TESTIMONIALS -->
+    <section class="testimonials-section">
         <div class="container">
-            <div class="section-header">
-                <h2>Why Choose Browser-Free?</h2>
-                <p>Experience the freedom of intentional technology</p>
+            <h2 class="section-title">What Our Customers Say</h2>
+            <div class="testimonials-slider">
+                <button class="slider-btn prev" onclick="changeSlide(-1)">‹</button>
+                <div class="testimonials-track">
+                    <div class="testimonial-card active">
+                        <p>"Best decision I ever made. No more endless scrolling, just real connections with my family."</p>
+                        <div class="testimonial-author">Sarah M.</div>
+                        <div class="testimonial-role">Parent, Brooklyn</div>
+                    </div>
+                    <div class="testimonial-card">
+                        <p>"Perfect phone for our community. Simple, reliable, and exactly what we needed."</p>
+                        <div class="testimonial-author">Rabbi Cohen</div>
+                        <div class="testimonial-role">Community Leader</div>
+                    </div>
+                    <div class="testimonial-card">
+                        <p>"My productivity has skyrocketed since switching. I actually focus on work now."</p>
+                        <div class="testimonial-author">David L.</div>
+                        <div class="testimonial-role">Entrepreneur</div>
+                    </div>
+                </div>
+                <button class="slider-btn next" onclick="changeSlide(1)">›</button>
             </div>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">🎯</div>
-                    <h3>Stay Focused</h3>
-                    <p>No browser means no distractions. Stay present with what matters most.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🔋</div>
-                    <h3>Better Battery Life</h3>
-                    <p>Without power-hungry browsers, enjoy days of battery life on a single charge.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🛡️</div>
-                    <h3>Enhanced Privacy</h3>
-                    <p>Protect your data and browsing habits with devices built for privacy.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">👨‍👩‍👧‍👦</div>
-                    <h3>Perfect for Families</h3>
-                    <p>Give your kids a safe, age-appropriate device without unrestricted internet access.</p>
-                </div>
-            </div>
+            <div class="slider-dots" id="slider-dots"></div>
         </div>
     </section>
 
-    <!-- ABOUT -->
-    <section class="about-section">
+    <!-- CTA SECTION -->
+    <section class="cta-section">
         <div class="container">
-            <div class="about-content">
-                <h2>Our Mission</h2>
-                <p>At The Phone Gesheft, we believe technology should enhance life, not consume it. We carefully select and curate smartphones that prioritize what matters: real connections, productivity, and peace of mind.</p>
-                <p>Whether you're part of an Orthodox community, a parent seeking safe devices for your children, or simply someone who values intentional technology use, we're here to help you find the perfect phone.</p>
-                <a href="/about" class="btn btn-white" style="background: var(--primary); color: white; margin-top: 1rem;">Learn More About Us</a>
-            </div>
-        </div>
-    </section>
-
-    <!-- NEWSLETTER -->
-    <section class="newsletter-section">
-        <div class="container">
-            <h2>Stay Updated</h2>
-            <p>Get the latest phone releases and exclusive offers</p>
-            <form class="newsletter-form" id="newsletter-form">
-                <input type="email" placeholder="Enter your email" required>
-                <button type="submit">Subscribe</button>
-            </form>
+            <h2>Ready to Simplify Your Life?</h2>
+            <p>Join thousands who've already made the switch to focused living</p>
+            <a href="/products" class="btn btn-white">Get Started Today</a>
         </div>
     </section>
 
@@ -549,30 +641,31 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-column">
-                    <h3>The Phone Gesheft</h3>
-                    <p style="color: #64748b; line-height: 1.6;">Browser-free phones for focused living. Serving Orthodox communities, families, and anyone seeking intentional technology.</p>
+                    <h4>The Phone Gesheft</h4>
+                    <p style="color: #9CA3AF; line-height: 1.6;">Browser-free phones for focused living. Helping families and communities stay connected to what matters.</p>
                 </div>
                 <div class="footer-column">
-                    <h3>Shop</h3>
+                    <h4>Shop</h4>
                     <ul>
-                        <li><a href="/products">All Phones</a></li>
+                        <li><a href="/products">All Products</a></li>
                         <li><a href="/products?category=featured">Featured</a></li>
                         <li><a href="/products?tag=kosher">Kosher Phones</a></li>
                         <li><a href="/products?tag=kids">Kids Phones</a></li>
                     </ul>
                 </div>
                 <div class="footer-column">
-                    <h3>Company</h3>
+                    <h4>Company</h4>
                     <ul>
                         <li><a href="/about">About Us</a></li>
                         <li><a href="/contact">Contact</a></li>
-                        <li><a href="/shipping">Shipping Info</a></li>
+                        <li><a href="/shipping">Shipping</a></li>
                         <li><a href="/returns">Returns</a></li>
                     </ul>
                 </div>
                 <div class="footer-column">
-                    <h3>Legal</h3>
+                    <h4>Support</h4>
                     <ul>
+                        <li><a href="/faq">FAQ</a></li>
                         <li><a href="/privacy">Privacy Policy</a></li>
                         <li><a href="/terms">Terms of Service</a></li>
                         <li><a href="/refund-policy">Refund Policy</a></li>
@@ -581,14 +674,6 @@
             </div>
             <div class="footer-bottom">
                 <p>&copy; <span id="copyright-year"></span> The Phone Gesheft. All rights reserved.</p>
-                <div class="social-links">
-                    <a href="#" aria-label="Facebook">
-                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                    </a>
-                    <a href="#" aria-label="Instagram">
-                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                    </a>
-                </div>
             </div>
         </div>
     </footer>
@@ -598,16 +683,42 @@
     <script src="config.js"></script>
     <script src="app.js"></script>
     <script>
-        // Copyright year
         document.getElementById("copyright-year").textContent = new Date().getFullYear();
 
-        // Newsletter form
-        document.getElementById('newsletter-form')?.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const email = e.target.querySelector('input[type="email"]').value;
-            alert('Thank you for subscribing! We\'ll be in touch soon.');
-            e.target.reset();
-        });
+        // Testimonial slider
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.testimonial-card');
+        const totalSlides = slides.length;
+        const dotsContainer = document.getElementById('slider-dots');
+
+        // Create dots
+        for (let i = 0; i < totalSlides; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'dot' + (i === 0 ? ' active' : '');
+            dot.onclick = () => showSlide(i);
+            dotsContainer.appendChild(dot);
+        }
+
+        function changeSlide(direction) {
+            currentSlide = (currentSlide + direction + totalSlides) % totalSlides;
+            showSlide(currentSlide);
+        }
+
+        function showSlide(index) {
+            currentSlide = index;
+            
+            slides.forEach((slide, i) => {
+                slide.classList.toggle('active', i === index);
+            });
+            
+            const dots = document.querySelectorAll('.dot');
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === index);
+            });
+        }
+
+        // Auto-rotate every 5 seconds
+        setInterval(() => changeSlide(1), 5000);
     </script>
 </body>
 </html>
