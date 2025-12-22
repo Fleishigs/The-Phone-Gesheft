@@ -8,8 +8,7 @@ async function loadProducts() {
         const { data: products, error } = await window.supabase
             .from('products')
             .select('*')
-            .eq('active', true)
-            .order('created_at', { ascending: false });
+            .order('id', { ascending: false });
 
         if (error) throw error;
 
