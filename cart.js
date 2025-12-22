@@ -13,15 +13,69 @@ function saveCart(cart) {
     updateCartCount();
 }
 
-// Update cart count in navigation
+// Update cart count in navigation - WORKS ON ALL PAGES
 function updateCartCount() {
     const cart = getCart();
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    const cartCountEl = document.getElementById('cart-count');
-    if (cartCountEl) {
-        cartCountEl.textContent = totalItems;
-        cartCountEl.style.display = totalItems > 0 ? 'block' : 'none';
+    
+    // Update all cart count elements on the page
+    const cartCountElements = document.querySelectorAll('#cart-count, .cart-count');
+    cartCountElements.forEach(el => {
+        el.textContent = totalItems;
+        el.style.display = totalItems > 0 ? 'inline-block' : 'none';
+    });
+}
+
+// Add item to cart - GLOBAL FUNCTION
+window.addToCart = function(productId, productName, productPrice, productImage, productDescription) {
+    let cart = getCart();
+    
+    const existing = cart.find(item => item.id === productId && !item.variant);
+    if (existing) {
+        existing.quantity += 1;
+    } else {
+        cart.push({
+            id: productId,
+            name: productName,
+            price: productPrice,
+            image: productImage,
+            description: productDescription || '',
+            quantity: 1
+        });
     }
+    
+    saveCart(cart);
+    showNotification(`${productName} added to cart!`);
+};
+
+// Show notification - GLOBAL FUNCTION
+window.showNotification = function(message) {
+    const notification = document.createElement('div');
+    notification.style.cssText = 'position: fixed; top: 100px; right: 20px; background: #10B981; color: white; padding: 1rem 2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 10000; animation: slideIn 0.3s ease;';
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 2000);
+};
+
+// Add animation styles if not present
+if (!document.getElementById('cart-animations')) {
+    const style = document.createElement('style');
+    style.id = 'cart-animations';
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(400px); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 // Format price for display
@@ -137,7 +191,7 @@ function displayCart() {
     `;
 }
 
-// Checkout function
+// Checkout function - FIXED
 async function checkoutCart() {
     const cart = getCart();
     
@@ -147,30 +201,32 @@ async function checkoutCart() {
     }
     
     try {
-        // Call your Netlify function to create a Stripe checkout session
-        const response = await fetch('/.netlify/functions/create-checkout-session', {
+        // Create line items for Stripe
+        const lineItems = cart.map(item => ({
+            price_data: {
+                currency: 'usd',
+                product_data: {
+                    name: item.name,
+                    description: item.description || '',
+                    images: item.image ? [item.image] : [],
+                },
+                unit_amount: Math.round(item.price * 100), // Convert to cents
+            },
+            quantity: item.quantity,
+        }));
+        
+        // Call Netlify function to create checkout session
+        const response = await fetch('/.netlify/functions/create-checkout', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                items: cart.map(item => ({
-                    price_data: {
-                        currency: 'usd',
-                        product_data: {
-                            name: item.name,
-                            description: item.description || '',
-                            images: item.image ? [item.image] : [],
-                        },
-                        unit_amount: Math.round(item.price * 100), // Convert to cents
-                    },
-                    quantity: item.quantity,
-                })),
-            }),
+            body: JSON.stringify({ cart: lineItems }),
         });
         
         if (!response.ok) {
-            throw new Error('Failed to create checkout session');
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to create checkout session');
         }
         
         const { sessionId } = await response.json();
@@ -180,12 +236,12 @@ async function checkoutCart() {
         
         if (error) {
             console.error('Checkout error:', error);
-            alert('Error processing checkout. Please try again.');
+            alert('Error processing checkout: ' + error.message);
         }
         
     } catch (error) {
         console.error('Checkout error:', error);
-        alert('Error processing checkout. Please try again.');
+        alert('Error processing checkout: ' + error.message + '. Please try again.');
     }
 }
 
