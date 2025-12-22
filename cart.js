@@ -1,142 +1,187 @@
-// Shopping cart functionality - WITH VARIANT SUPPORT
+// Cart Management System
+// Uses window.supabase and window.stripe from config.js
+
+// Get cart from localStorage
 function getCart() {
-    return JSON.parse(localStorage.getItem('cart') || '[]');
+    const cart = localStorage.getItem('cart');
+    return cart ? JSON.parse(cart) : [];
 }
 
+// Save cart to localStorage
 function saveCart(cart) {
     localStorage.setItem('cart', JSON.stringify(cart));
     updateCartCount();
 }
 
+// Update cart count in navigation
 function updateCartCount() {
     const cart = getCart();
-    const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-    document.querySelectorAll('.cart-count').forEach(el => {
-        el.textContent = count;
-    });
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const cartCountEl = document.getElementById('cart-count');
+    if (cartCountEl) {
+        cartCountEl.textContent = totalItems;
+        cartCountEl.style.display = totalItems > 0 ? 'block' : 'none';
+    }
 }
 
-function removeFromCart(index) {
+// Format price for display
+function formatPrice(price) {
+    return `$${price.toFixed(2)}`;
+}
+
+// Calculate cart totals
+function calculateTotals(cart) {
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const shipping = 0; // Calculated at checkout
+    const total = subtotal + shipping;
+    
+    return { subtotal, shipping, total };
+}
+
+// Remove item from cart
+function removeFromCart(productId) {
     let cart = getCart();
-    cart.splice(index, 1);
+    cart = cart.filter(item => item.id !== productId);
     saveCart(cart);
     displayCart();
 }
 
-function updateQuantity(index, change) {
-    const cart = getCart();
-    cart[index].quantity += change;
-    if (cart[index].quantity <= 0) {
-        removeFromCart(index);
-    } else {
-        saveCart(cart);
-        displayCart();
+// Update item quantity
+function updateQuantity(productId, newQuantity) {
+    let cart = getCart();
+    const item = cart.find(item => item.id === productId);
+    
+    if (item) {
+        if (newQuantity <= 0) {
+            removeFromCart(productId);
+        } else {
+            item.quantity = newQuantity;
+            saveCart(cart);
+            displayCart();
+        }
     }
 }
 
+// Display cart items
 function displayCart() {
     const cart = getCart();
     const container = document.getElementById('cart-container');
     
-    if (!container) return;
-    
     if (cart.length === 0) {
         container.innerHTML = `
             <div class="empty-cart">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 80px; height: 80px; color: #9CA3AF; margin: 0 auto 1rem;">
-                    <circle cx="9" cy="21" r="1"/>
-                    <circle cx="20" cy="21" r="1"/>
-                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                </svg>
                 <h2>Your cart is empty</h2>
                 <p>Add some products to get started!</p>
-                <a href="/products" class="btn btn-primary btn-large">Shop Products</a>
+                <button class="checkout-btn" onclick="window.location.href='/products'">
+                    Continue Shopping
+                </button>
             </div>
         `;
         return;
     }
     
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const { subtotal, shipping, total } = calculateTotals(cart);
     
     container.innerHTML = `
-        <div class="cart-grid">
+        <div class="cart-container">
             <div class="cart-items">
-                ${cart.map((item, index) => `
+                ${cart.map(item => `
                     <div class="cart-item">
-                        <div class="cart-item-image">
-                            ${item.image ? 
-                                `<img src="${item.image}" alt="${item.name}">` :
-                                `<div class="product-image-placeholder">No Image</div>`
-                            }
+                        <img src="${item.image || '/placeholder.png'}" alt="${item.name}">
+                        <div class="item-details">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-price">${formatPrice(item.price)}</div>
+                            <div class="quantity-controls">
+                                <button class="qty-btn" onclick="updateQuantity(${item.id}, ${item.quantity - 1})">-</button>
+                                <input type="number" value="${item.quantity}" min="1" 
+                                    onchange="updateQuantity(${item.id}, parseInt(this.value))"
+                                    style="width: 60px; text-align: center; border: 1px solid #D1D5DB; border-radius: 6px; padding: 4px;">
+                                <button class="qty-btn" onclick="updateQuantity(${item.id}, ${item.quantity + 1})">+</button>
+                            </div>
                         </div>
-                        <div class="cart-item-details">
-                            <h3>${item.name}</h3>
-                            ${item.variant ? `<p style="color: #6B7280; font-size: 0.875rem; margin-top: 0.25rem;">Option: ${item.variant}</p>` : ''}
-                            <div class="cart-item-price">$${item.price.toFixed(2)}</div>
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between;">
+                            <div class="item-price">${formatPrice(item.price * item.quantity)}</div>
+                            <button class="remove-btn" onclick="removeFromCart(${item.id})">✕ Remove</button>
                         </div>
-                        <div class="cart-item-quantity">
-                            <button class="qty-btn" onclick="updateQuantity(${index}, -1)">−</button>
-                            <span>${item.quantity}</span>
-                            <button class="qty-btn" onclick="updateQuantity(${index}, 1)">+</button>
-                        </div>
-                        <div class="cart-item-total">
-                            $${(item.price * item.quantity).toFixed(2)}
-                        </div>
-                        <button class="cart-item-remove" onclick="removeFromCart(${index})">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="18" y1="6" x2="6" y2="18"/>
-                                <line x1="6" y1="6" x2="18" y2="18"/>
-                            </svg>
-                        </button>
                     </div>
                 `).join('')}
             </div>
             
             <div class="cart-summary">
-                <h2>Order Summary</h2>
+                <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Order Summary</h2>
+                
                 <div class="summary-row">
                     <span>Subtotal</span>
-                    <span>$${total.toFixed(2)}</span>
+                    <span>${formatPrice(subtotal)}</span>
                 </div>
+                
                 <div class="summary-row">
                     <span>Shipping</span>
-                    <span>Calculated at checkout</span>
+                    <span>${shipping === 0 ? 'Calculated at checkout' : formatPrice(shipping)}</span>
                 </div>
-                <div class="summary-total">
+                
+                <div class="summary-row summary-total">
                     <span>Total</span>
-                    <span>$${total.toFixed(2)}</span>
+                    <span>${formatPrice(total)}</span>
                 </div>
-                <button class="btn btn-primary btn-large btn-full" onclick="checkoutCart()">
+                
+                <button class="checkout-btn" onclick="checkoutCart()">
                     Proceed to Checkout
                 </button>
-                <a href="/products" class="btn btn-secondary btn-full" style="margin-top: 1rem;">
+                
+                <button class="continue-shopping-btn" onclick="window.location.href='/products'">
                     Continue Shopping
-                </a>
+                </button>
             </div>
         </div>
     `;
 }
 
+// Checkout function
 async function checkoutCart() {
     const cart = getCart();
     
     if (cart.length === 0) {
-        alert('Your cart is empty');
+        alert('Your cart is empty!');
         return;
     }
     
     try {
-        const response = await fetch('/.netlify/functions/create-checkout', {
+        // Call your Netlify function to create a Stripe checkout session
+        const response = await fetch('/.netlify/functions/create-checkout-session', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cart })
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                items: cart.map(item => ({
+                    price_data: {
+                        currency: 'usd',
+                        product_data: {
+                            name: item.name,
+                            description: item.description || '',
+                            images: item.image ? [item.image] : [],
+                        },
+                        unit_amount: Math.round(item.price * 100), // Convert to cents
+                    },
+                    quantity: item.quantity,
+                })),
+            }),
         });
         
-        const data = await response.json();
+        if (!response.ok) {
+            throw new Error('Failed to create checkout session');
+        }
         
-        if (data.error) throw new Error(data.error);
+        const { sessionId } = await response.json();
         
-        await stripe.redirectToCheckout({ sessionId: data.sessionId });
+        // Redirect to Stripe Checkout
+        const { error } = await window.stripe.redirectToCheckout({ sessionId });
+        
+        if (error) {
+            console.error('Checkout error:', error);
+            alert('Error processing checkout. Please try again.');
+        }
         
     } catch (error) {
         console.error('Checkout error:', error);
@@ -144,9 +189,23 @@ async function checkoutCart() {
     }
 }
 
-// Initialize
-if (document.getElementById('cart-container')) {
-    displayCart();
-}
-
-updateCartCount();
+// Initialize cart on page load
+document.addEventListener('DOMContentLoaded', () => {
+    // Wait for config.js to initialize
+    const initInterval = setInterval(() => {
+        if (window.supabase && window.stripe) {
+            clearInterval(initInterval);
+            displayCart();
+            updateCartCount();
+        }
+    }, 50);
+    
+    // Timeout after 5 seconds
+    setTimeout(() => {
+        clearInterval(initInterval);
+        if (!window.supabase || !window.stripe) {
+            console.error('Configuration failed to load');
+            alert('Failed to load page configuration. Please refresh.');
+        }
+    }, 5000);
+});

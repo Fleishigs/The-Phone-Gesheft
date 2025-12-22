@@ -3,95 +3,246 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Successful - The Phone Gesheft</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Order Confirmed - The Phone Gesheft</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #667EEA;
+            --secondary: #764BA2;
+            --text-dark: #1E293B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .success-container {
+            max-width: 600px;
+            background: white;
+            border-radius: 24px;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .checkmark {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #10B981;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+
+        .checkmark svg {
+            width: 50px;
+            height: 50px;
+            stroke: white;
+            stroke-width: 3;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
+            animation: drawCheck 0.8s ease-out 0.2s forwards;
+        }
+
+        @keyframes drawCheck {
+            to { stroke-dashoffset: 0; }
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+        }
+
+        p {
+            font-size: 1.125rem;
+            color: #6B7280;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .order-details {
+            background: #F9FAFB;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .detail-value {
+            color: #6B7280;
+        }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 1rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: #F9FAFB;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
-    <nav class="main-nav">
-        <div class="container">
-            <div class="nav-content">
-                <a href="/" class="logo">
-                    <svg viewBox="0 0 40 40" class="logo-icon">
-                        <rect x="8" y="5" width="24" height="30" rx="4" fill="currentColor"/>
-                        <rect x="12" y="9" width="16" height="18" rx="2" fill="white"/>
-                        <circle cx="20" cy="31" r="2" fill="white"/>
-                    </svg>
-                    <span>The Phone Gesheft</span>
-                </a>
-                <div class="nav-links">
-                    <a href="/">Home</a>
-                    <a href="/products">Products</a>
-                    <a href="/about">About</a>
-                    <a href="/contact">Contact</a>
-                    <a href="/faq">FAQ</a>
-                </div>
+
+    <div class="success-container">
+        <div class="checkmark">
+            <svg viewBox="0 0 52 52">
+                <polyline points="14 27 22 35 38 17" />
+            </svg>
+        </div>
+
+        <h1>Order Confirmed!</h1>
+        <p>Thank you for your purchase. We've received your order and will begin processing it right away.</p>
+        
+        <div class="order-details" id="order-details">
+            <div class="detail-row">
+                <span class="detail-label">Order Number:</span>
+                <span class="detail-value" id="order-number"><span class="loading"></span></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Email:</span>
+                <span class="detail-value" id="customer-email"><span class="loading"></span></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Status:</span>
+                <span class="detail-value">Processing</span>
             </div>
         </div>
-    </nav>
 
-    <main>
-        <section class="page-hero">
-            <div class="container">
-                <div style="text-align: center; padding: 4rem 0;">
-                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" style="margin: 0 auto 2rem;">
-                        <circle cx="12" cy="12" r="10" fill="#10B981"/>
-                        <path d="M8 12l2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                    <h1 style="margin-bottom: 1rem;">Payment Successful!</h1>
-                    <p style="font-size: 1.25rem; color: #6B7280; margin-bottom: 2rem;">Thank you for your purchase. We'll send you a confirmation email shortly.</p>
-                    <a href="/products" class="btn btn-primary btn-large">Continue Shopping</a>
-                </div>
-            </div>
-        </section>
-    </main>
+        <p style="font-size: 1rem;">You'll receive a confirmation email shortly with your order details and tracking information once your order ships.</p>
 
-    <footer class="main-footer">
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-col">
-                    <h4>The Phone Gesheft</h4>
-                    <p>Simple phones for a focused life.</p>
-                </div>
-                
-                <div class="footer-col">
-                    <h4>Quick Links</h4>
-                    <ul>
-                        <li><a href="/">Home</a></li>
-                        <li><a href="/products">Products</a></li>
-                        <li><a href="/about">About</a></li>
-                        <li><a href="/contact">Contact</a></li>
-                        <li><a href="/faq">FAQ</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer-col">
-                    <h4>Contact Us</h4>
-                    <ul class="contact-info">
-                        <li>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-                            </svg>
-                            (555) 123-4567
-                        </li>
-                        <li>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                                <polyline points="22,6 12,13 2,6"/>
-                            </svg>
-                            info@phonegesheft.com
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="footer-bottom">
-                <p>&copy; 2024 The Phone Gesheft. All rights reserved.</p>
-            </div>
+        <div class="actions">
+            <a href="/products" class="btn btn-secondary">Continue Shopping</a>
+            <a href="/" class="btn btn-primary">Back to Home</a>
         </div>
-    </footer>
+    </div>
 
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
     <script>
+        // Get session ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('session_id');
+
+        // Clear cart after successful checkout
         localStorage.removeItem('cart');
+
+        // Fetch session details
+        if (sessionId) {
+            fetchSessionDetails(sessionId);
+        }
+
+        async function fetchSessionDetails(sessionId) {
+            try {
+                // Call your Netlify function to retrieve session details
+                const response = await fetch('/.netlify/functions/get-session-details', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ sessionId }),
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Display order details
+                    document.getElementById('order-number').textContent = `#${sessionId.slice(-8).toUpperCase()}`;
+                    document.getElementById('customer-email').textContent = data.customer_email || 'Check your email';
+                } else {
+                    // Fallback if API call fails
+                    document.getElementById('order-number').textContent = `#${sessionId.slice(-8).toUpperCase()}`;
+                    document.getElementById('customer-email').textContent = 'Check your email';
+                }
+            } catch (error) {
+                console.error('Error fetching session details:', error);
+                // Fallback display
+                document.getElementById('order-number').textContent = `#${sessionId.slice(-8).toUpperCase()}`;
+                document.getElementById('customer-email').textContent = 'Check your email';
+            }
+        }
     </script>
 </body>
 </html>

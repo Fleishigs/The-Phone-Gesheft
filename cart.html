@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shopping Cart - The Phone Gesheft</title>
-    <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -214,6 +213,7 @@
             font-size: 1.125rem;
             cursor: pointer;
             margin-top: 1.5rem;
+            transition: all 0.3s ease;
         }
 
         .checkout-btn:hover {
@@ -221,11 +221,40 @@
             box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
         }
 
+        .continue-shopping-btn {
+            width: 100%;
+            padding: 1rem;
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.125rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .continue-shopping-btn:hover {
+            background: var(--light-bg);
+        }
+
         .empty-cart {
             text-align: center;
             padding: 4rem 2rem;
             background: white;
             border-radius: 16px;
+        }
+
+        .empty-cart h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+        }
+
+        .empty-cart p {
+            color: #6B7280;
+            margin-bottom: 2rem;
         }
 
         /* === FOOTER === */
@@ -362,8 +391,11 @@
         </div>
     </footer>
 
+    <!-- CRITICAL: Stripe must be loaded BEFORE cart.js -->
+    <script src="https://js.stripe.com/v3/"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
+    <script src="cart-utils.js"></script>
     <script src="cart.js"></script>
     <script>
         document.getElementById("copyright-year").textContent = new Date().getFullYear();
