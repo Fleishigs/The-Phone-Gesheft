@@ -5,140 +5,284 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About Us - The Phone Gesheft</title>
     <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #667EEA;
+            --secondary: #764BA2;
+            --light-bg: #F8FAFC;
+            --text-dark: #1E293B;
+            --glass-nav: rgba(255, 255, 255, 0.75);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: white;
+            color: var(--text-dark);
+            padding-top: 70px;
+        }
+
+        /* === GLASS NAVIGATION === */
+        .main-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            z-index: 1000;
+            background: var(--glass-nav);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-content {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo img {
+            height: 28px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-actions a {
+            color: var(--text-dark);
+            position: relative;
+            text-decoration: none;
+        }
+
+        #cart-count {
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            background: var(--secondary);
+            color: white;
+            border-radius: 10px;
+            padding: 1px 5px;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 4rem 0;
+            color: white;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+        }
+
+        .content-section {
+            padding: 3rem 0;
+        }
+
+        .content-section h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            color: var(--text-dark);
+        }
+
+        .content-section p {
+            font-size: 1.125rem;
+            line-height: 1.8;
+            color: #4B5563;
+            margin-bottom: 1.5rem;
+        }
+
+        /* === FOOTER === */
+        .main-footer {
+            background: #1F2937;
+            color: white;
+            padding: 4rem 0 2rem;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 3rem;
+            margin-bottom: 3rem;
+            max-width: 1200px;
+            margin: 0 auto 3rem;
+            padding: 0 2rem;
+        }
+
+        .footer-column h4 {
+            font-size: 1.125rem;
+            margin-bottom: 1.25rem;
+            color: white;
+        }
+
+        .footer-column ul {
+            list-style: none;
+        }
+
+        .footer-column ul li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-column ul li a {
+            color: #9CA3AF;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-column ul li a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #374151;
+            padding-top: 2rem;
+            text-align: center;
+            color: #9CA3AF;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body>
+
+    <!-- GLASS NAVIGATION -->
     <nav class="main-nav">
-        <div class="container">
-            <div class="nav-content">
-                <a href="/" class="logo">
-                    <img src="/h_logo.png" alt="The Phone Gesheft" style="height: 40px;">
+        <div class="nav-content">
+            <a href="/" class="logo">
+                <img src="/h_logo.png" alt="The Phone Gesheft Logo">
+            </a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/products">Shop</a>
+                <a href="/about">About</a>
+                <a href="/faq">FAQ</a>
+                <a href="/contact">Contact</a>
+            </div>
+            <div class="nav-actions">
+                <a href="/cart">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="9" cy="21" r="1"/>
+                        <circle cx="20" cy="21" r="1"/>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                    </svg>
+                    <span id="cart-count">0</span>
                 </a>
-                
-                <div class="nav-links">
-                    <a href="/">Home</a>
-                    <a href="/products">Products</a>
-                    <a href="/about">About</a>
-                    <a href="/contact">Contact</a>
-                    <a href="/faq">FAQ</a>
-                </div>
-                
-                <div class="nav-actions">
-                    <a href="/cart" class="cart-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="9" cy="21" r="1"/>
-                            <circle cx="20" cy="21" r="1"/>
-                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                        </svg>
-                        <span class="cart-count">0</span>
-                    </a>
-                </div>
             </div>
         </div>
     </nav>
 
-    <main>
-        <section class="page-hero">
-            <div class="container">
-                <h1>About The Phone Gesheft</h1>
-                <p>Helping you live a more focused, intentional life</p>
-            </div>
-        </section>
-
-        <section class="about-section">
-            <div class="container">
-                <div class="about-content">
-                    <div class="about-text">
-                        <h2>Our Mission</h2>
-                        <p>In a world of constant notifications, endless scrolling, and digital distractions, we believe there's a better way to stay connected.</p>
-                        
-                        <p>The Phone Gesheft was born from a simple observation: smartphones are amazing tools, but the internet browser and social media apps have turned them into time-stealing devices that keep us from what truly matters.</p>
-                        
-                        <h3>Why We Do This</h3>
-                        <p>We've seen families sitting at dinner tables, each person absorbed in their phone. We've watched productivity plummet as people bounce between apps and websites. We've witnessed the anxiety that comes from constant digital stimulation.</p>
-                        
-                        <p>But we've also seen the transformation that happens when people take back control of their technology.</p>
-                        
-                        <h3>The Solution</h3>
-                        <p>Our phones give you everything you need—calls, texts, GPS, music, podcasts, and carefully selected apps—without the browser that leads to endless rabbit holes.</p>
-                        
-                        <p>No social media. No endless scrolling. No addictive algorithms. Just the tools you need to communicate, navigate, and live your life.</p>
-                        
-                        <h3>Who We Serve</h3>
-                        <ul class="about-list">
-                            <li><strong>Orthodox Jewish communities</strong> seeking technology that aligns with their values</li>
-                            <li><strong>Parents</strong> who want their children to have safe, filtered connectivity</li>
-                            <li><strong>Professionals</strong> who need to stay focused and productive</li>
-                            <li><strong>Anyone</strong> seeking digital minimalism and mental clarity</li>
-                        </ul>
-                        
-                        <h3>Our Promise</h3>
-                        <p>Every phone we sell is carefully configured to be 100% browser-free while maintaining full functionality for essential tasks. We provide expert support, customization options, and a 14-day money-back guarantee.</p>
-                        
-                        <p>Join hundreds of satisfied customers who've discovered what it's like to have a phone that serves them—instead of the other way around.</p>
-                    </div>
-                    
-                    <div class="about-stats">
-                        <div class="stat-box">
-                            <div class="stat-number">500+</div>
-                            <div class="stat-label">Happy Customers</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-number">100%</div>
-                            <div class="stat-label">Browser-Free</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-number">24/7</div>
-                            <div class="stat-label">Support</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-number">14-Day</div>
-                            <div class="stat-label">Money Back</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="about-cta">
-                    <h2>Ready to Simplify Your Life?</h2>
-                    <p>Discover what it's like to have technology that works for you</p>
-                    <a href="/products" class="btn btn-primary btn-large">Browse Our Phones</a>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer class="main-footer">
+    <!-- PAGE HEADER -->
+    <section class="page-header">
         <div class="container">
-            <div class="footer-grid">
-                <div class="footer-col">
-                    <h4>The Phone Gesheft</h4>
-                    <p>Simple phones for a focused life.</p>
-                </div>
-                <div class="footer-col">
-                    <h4>Quick Links</h4>
-                    <ul>
-                        <li><a href="/">Home</a></li>
-                        <li><a href="/products">Products</a></li>
-                        <li><a href="/about">About</a></li>
-                        <li><a href="/contact">Contact</a></li>
-                    </ul>
-                </div>
+            <h1>About Us</h1>
+        </div>
+    </section>
+
+    <!-- CONTENT -->
+    <div class="container">
+        <section class="content-section">
+            <h2>Our Mission</h2>
+            <p>At The Phone Gesheft, we believe technology should enhance life, not dominate it. We're dedicated to providing browser-free phones that help families, communities, and individuals stay connected to what truly matters.</p>
+            <p>Our carefully curated selection of phones offers the essential features you need—calling, texting, and basic apps—without the endless distractions of web browsers and social media.</p>
+        </section>
+
+        <section class="content-section">
+            <h2>Who We Serve</h2>
+            <p>We proudly serve Orthodox Jewish communities, parents seeking safer options for their children, and anyone looking to embrace digital minimalism. Our phones are perfect for those who want to stay connected without the constant pull of the internet.</p>
+        </section>
+
+        <section class="content-section">
+            <h2>Our Promise</h2>
+            <p>Every phone we offer is thoroughly tested and vetted to ensure it meets our high standards for focus and functionality. We're committed to exceptional customer service and helping you find the perfect device for your lifestyle.</p>
+        </section>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="main-footer">
+        <div class="footer-grid">
+            <div class="footer-column">
+                <h4>The Phone Gesheft</h4>
+                <p style="color: #9CA3AF; line-height: 1.6;">Browser-free phones for focused living. Helping families and communities stay connected to what matters.</p>
             </div>
-            <div class="footer-bottom">
-                <p>&copy; 2024 The Phone Gesheft. All rights reserved.</p>
+            <div class="footer-column">
+                <h4>Shop</h4>
+                <ul>
+                    <li><a href="/products">All Products</a></li>
+                    <li><a href="/cart">Shopping Cart</a></li>
+                    <li><a href="/checkout">Checkout</a></li>
+                </ul>
             </div>
+            <div class="footer-column">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="/about">About Us</a></li>
+                    <li><a href="/contact">Contact</a></li>
+                    <li><a href="/shipping">Shipping</a></li>
+                    <li><a href="/returns">Returns</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>Support</h4>
+                <ul>
+                    <li><a href="/faq">FAQ</a></li>
+                    <li><a href="/privacy">Privacy Policy</a></li>
+                    <li><a href="/terms">Terms of Service</a></li>
+                    <li><a href="/refund-policy">Refund Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; <span id="copyright-year"></span> The Phone Gesheft. All rights reserved.</p>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
+    <script src="app.js"></script>
     <script>
-        function updateCartCount() {
-            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-            document.querySelectorAll('.cart-count').forEach(el => el.textContent = count);
-        }
-        updateCartCount();
+        document.getElementById("copyright-year").textContent = new Date().getFullYear();
     </script>
-<script>document.getElementById("copyright-year").textContent = new Date().getFullYear();</script>
 </body>
 </html>

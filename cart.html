@@ -5,77 +5,368 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shopping Cart - The Phone Gesheft</title>
     <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #667EEA;
+            --secondary: #764BA2;
+            --light-bg: #F8FAFC;
+            --text-dark: #1E293B;
+            --glass-nav: rgba(255, 255, 255, 0.75);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #F9FAFB;
+            color: var(--text-dark);
+            padding-top: 70px;
+        }
+
+        /* === GLASS NAVIGATION === */
+        .main-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            z-index: 1000;
+            background: var(--glass-nav);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-content {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo img {
+            height: 28px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-actions a {
+            color: var(--text-dark);
+            position: relative;
+            text-decoration: none;
+        }
+
+        #cart-count {
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            background: var(--secondary);
+            color: white;
+            border-radius: 10px;
+            padding: 1px 5px;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            color: var(--text-dark);
+        }
+
+        .cart-container {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+        }
+
+        .cart-items {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .cart-item {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1.5rem 0;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .cart-item img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        .item-details {
+            flex: 1;
+        }
+
+        .item-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .item-price {
+            font-size: 1.125rem;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .qty-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #D1D5DB;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .qty-btn:hover {
+            background: var(--light-bg);
+        }
+
+        .remove-btn {
+            color: #EF4444;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        .cart-summary {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            height: fit-content;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .summary-total {
+            font-size: 1.5rem;
+            font-weight: 800;
+            padding-top: 1rem;
+            border-top: 2px solid #E5E7EB;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.125rem;
+            cursor: pointer;
+            margin-top: 1.5rem;
+        }
+
+        .checkout-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 16px;
+        }
+
+        /* === FOOTER === */
+        .main-footer {
+            background: #1F2937;
+            color: white;
+            padding: 4rem 0 2rem;
+            margin-top: 4rem;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-column h4 {
+            font-size: 1.125rem;
+            margin-bottom: 1.25rem;
+            color: white;
+        }
+
+        .footer-column ul {
+            list-style: none;
+        }
+
+        .footer-column ul li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-column ul li a {
+            color: #9CA3AF;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-column ul li a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #374151;
+            padding-top: 2rem;
+            text-align: center;
+            color: #9CA3AF;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            .cart-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
+
+    <!-- GLASS NAVIGATION -->
     <nav class="main-nav">
-        <div class="container">
-            <div class="nav-content">
-                <a href="/" class="logo">
-                    <img src="/h_logo.png" alt="The Phone Gesheft" style="height: 40px;">
+        <div class="nav-content">
+            <a href="/" class="logo">
+                <img src="/h_logo.png" alt="The Phone Gesheft Logo">
+            </a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/products">Shop</a>
+                <a href="/about">About</a>
+                <a href="/faq">FAQ</a>
+                <a href="/contact">Contact</a>
+            </div>
+            <div class="nav-actions">
+                <a href="/cart">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="9" cy="21" r="1"/>
+                        <circle cx="20" cy="21" r="1"/>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                    </svg>
+                    <span id="cart-count">0</span>
                 </a>
-                
-                <div class="nav-links">
-                    <a href="/">Home</a>
-                    <a href="/products">Products</a>
-                    <a href="/about">About</a>
-                    <a href="/contact">Contact</a>
-                    <a href="/faq">FAQ</a>
-                </div>
-                
-                <div class="nav-actions">
-                    <a href="/cart" class="cart-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="9" cy="21" r="1"/>
-                            <circle cx="20" cy="21" r="1"/>
-                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                        </svg>
-                        <span class="cart-count">0</span>
-                    </a>
-                </div>
             </div>
         </div>
     </nav>
 
-    <main>
-        <section class="page-hero">
-            <div class="container">
-                <h1>Shopping Cart</h1>
-            </div>
-        </section>
+    <!-- CART CONTENT -->
+    <div class="container">
+        <h1 class="page-title">Shopping Cart</h1>
+        
+        <div id="cart-container">
+            <!-- Cart items loaded by JavaScript -->
+        </div>
+    </div>
 
-        <section class="cart-section">
-            <div class="container">
-                <div id="cart-container"></div>
-            </div>
-        </section>
-    </main>
-
+    <!-- FOOTER -->
     <footer class="main-footer">
         <div class="container">
             <div class="footer-grid">
-                <div class="footer-col">
+                <div class="footer-column">
                     <h4>The Phone Gesheft</h4>
-                    <p>Simple phones for a focused life.</p>
+                    <p style="color: #9CA3AF; line-height: 1.6;">Browser-free phones for focused living. Helping families and communities stay connected to what matters.</p>
                 </div>
-                <div class="footer-col">
-                    <h4>Quick Links</h4>
+                <div class="footer-column">
+                    <h4>Shop</h4>
                     <ul>
-                        <li><a href="/">Home</a></li>
-                        <li><a href="/products">Products</a></li>
+                        <li><a href="/products">All Products</a></li>
+                        <li><a href="/cart">Shopping Cart</a></li>
+                        <li><a href="/checkout">Checkout</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="/about">About Us</a></li>
                         <li><a href="/contact">Contact</a></li>
+                        <li><a href="/shipping">Shipping</a></li>
+                        <li><a href="/returns">Returns</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="/faq">FAQ</a></li>
+                        <li><a href="/privacy">Privacy Policy</a></li>
+                        <li><a href="/terms">Terms of Service</a></li>
+                        <li><a href="/refund-policy">Refund Policy</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 The Phone Gesheft. All rights reserved.</p>
+                <p>&copy; <span id="copyright-year"></span> The Phone Gesheft. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://js.stripe.com/v3/"></script>
     <script src="config.js"></script>
     <script src="cart.js"></script>
-<script>document.getElementById("copyright-year").textContent = new Date().getFullYear();</script>
+    <script>
+        document.getElementById("copyright-year").textContent = new Date().getFullYear();
+    </script>
 </body>
 </html>
