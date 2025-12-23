@@ -153,17 +153,23 @@ function displayProducts(products) {
         const hasVariants = product.variants && product.variants.length > 0;
         
         return `
-            <div class="product-card">
+            <div class="product-card" onclick="window.location.href='/product?id=${product.id}'" style="cursor: pointer;">
                 <img src="${mainImage}" alt="${product.name}">
                 <h3>${product.name}</h3>
-                <p style="color: #6B7280; font-size: 0.9rem; margin: 0.5rem 0;">${product.description || ''}</p>
+                <p style="color: #6B7280; font-size: 0.9rem; margin: 0.5rem 0;">${truncateText(product.description || '', 100)}</p>
                 <div class="price">$${product.price.toFixed(2)}${hasVariants ? '+' : ''}</div>
-                <button class="add-to-cart-btn" onclick="addToCart(${product.id}, '${escapeQuotes(product.name)}', ${product.price}, '${mainImage}', '${escapeQuotes(product.description || '')}')">
+                <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart(${product.id}, '${escapeQuotes(product.name)}', ${product.price}, '${mainImage}', '${escapeQuotes(product.description || '')}')">
                     Add to Cart
                 </button>
             </div>
         `;
     }).join('');
+}
+
+// Truncate text helper
+function truncateText(text, maxLength) {
+    if (!text || text.length <= maxLength) return text || '';
+    return text.substring(0, maxLength) + '...';
 }
 
 // Escape quotes for onclick attributes
