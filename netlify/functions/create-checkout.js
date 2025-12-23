@@ -1,64 +1,57 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 exports.handler = async (event) => {
+  // Only allow POST requests
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method Not Allowed' };
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: 'Method not allowed' })
+    };
   }
 
   try {
     const body = JSON.parse(event.body);
+    console.log('Received body:', JSON.stringify(body, null, 2));
+    
+    // The cart comes in as { cart: [ lineItems ] }
     const { cart } = body;
     
     if (!cart || !Array.isArray(cart) || cart.length === 0) {
-      throw new Error('Invalid cart data');
-    }
-    
-    const lineItems = cart.map(item => {
-      const productData = { name: item.name };
-      
-      if (item.image && item.image.trim() !== '') {
-        productData.images = [item.image];
-      }
-      
+      console.error('Invalid cart data:', cart);
       return {
-        price_data: {
-          currency: 'usd',
-          product_data: productData,
-          unit_amount: Math.round(item.price * 100),
-        },
-        quantity: item.quantity,
+        statusCode: 400,
+        body: JSON.stringify({ error: 'No items provided or invalid cart data' })
       };
-    });
+    }
 
+    console.log('Cart items:', JSON.stringify(cart, null, 2));
+
+    // Create Stripe checkout session
+    // The cart already has the correct format from cart.js
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
-      line_items: lineItems,
+      line_items: cart,
       mode: 'payment',
-      success_url: `${event.headers.origin || 'https://kosherlynk.netlify.app'}/success`,
-      cancel_url: `${event.headers.origin || 'https://kosherlynk.netlify.app'}/cart`,
-      
-      // 🔥 FORCE CUSTOMER TO PROVIDE INFO
-      billing_address_collection: 'required',
+      success_url: `${process.env.URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.URL}/cart`,
       shipping_address_collection: {
-        allowed_countries: ['US', 'CA', 'GB', 'AU'], // Add more countries as needed
+        allowed_countries: ['US', 'CA'], // Add more countries as needed
       },
-      phone_number_collection: {
-        enabled: true, // 🔥 COLLECT PHONE NUMBER
-      },
-      
-      // Optional: Collect customer email (usually auto-filled if logged in)
-      customer_email: cart[0]?.customerEmail || undefined,
+      billing_address_collection: 'required',
     });
+
+    console.log('Session created:', session.id);
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ sessionId: session.id }),
+      body: JSON.stringify({ sessionId: session.id })
     };
+
   } catch (error) {
-    console.error('Stripe checkout error:', error);
+    console.error('Checkout error:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message }),
+      body: JSON.stringify({ error: error.message })
     };
   }
 };
