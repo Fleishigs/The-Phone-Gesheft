@@ -34,8 +34,17 @@ function updateCartCount() {
 window.addToCart = function(productId, productName, productPrice, productImage, productDescription) {
     let cart = getCart();
     
-    // Validate price
+    // CRITICAL: Convert price to number
     const price = parseFloat(productPrice);
+    
+    console.log('addToCart called:', {
+        productId,
+        productName,
+        productPrice,
+        parsedPrice: price,
+        isNaN: isNaN(price)
+    });
+    
     if (isNaN(price) || price <= 0) {
         console.error('Invalid price for product:', productName, productPrice);
         alert('Error: Invalid product price. Please refresh the page and try again.');
@@ -49,13 +58,14 @@ window.addToCart = function(productId, productName, productPrice, productImage, 
         cart.push({
             id: productId,
             name: productName,
-            price: price, // Store as number
+            price: price, // Store as NUMBER not string
             image: productImage,
             description: productDescription || '',
             quantity: 1
         });
     }
     
+    console.log('Cart after adding:', cart);
     saveCart(cart);
     
     // Show notification
@@ -93,13 +103,13 @@ if (!document.getElementById('cart-animations')) {
 
 // Format price for display
 function formatPrice(price) {
-    return `$${price.toFixed(2)}`;
+    return `$${parseFloat(price).toFixed(2)}`;
 }
 
 // Calculate cart totals
 function calculateTotals(cart) {
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const shipping = 0; // Calculated at checkout
+    const subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+    const shipping = 0;
     const total = subtotal + shipping;
     
     return { subtotal, shipping, total };
@@ -167,7 +177,7 @@ function displayCart() {
                             </div>
                         </div>
                         <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between;">
-                            <div class="item-price">${formatPrice(item.price * item.quantity)}</div>
+                            <div class="item-price">${formatPrice(parseFloat(item.price) * item.quantity)}</div>
                             <button class="remove-btn" onclick="removeFromCart(${item.id})">✕ Remove</button>
                         </div>
                     </div>
@@ -204,9 +214,11 @@ function displayCart() {
     `;
 }
 
-// Checkout function - FIXED with price validation
+// Checkout function - COMPLETELY REWRITTEN
 async function checkoutCart() {
     const cart = getCart();
+    
+    console.log('Starting checkout with cart:', cart);
     
     if (cart.length === 0) {
         alert('Your cart is empty!');
@@ -214,23 +226,36 @@ async function checkoutCart() {
     }
     
     try {
-        // Validate cart items have valid prices
-        const invalidItems = cart.filter(item => !item.price || isNaN(item.price) || item.price <= 0);
-        if (invalidItems.length > 0) {
-            console.error('Invalid cart items:', invalidItems);
-            alert('Some items in your cart have invalid prices. Please remove them and try again.');
-            return;
-        }
+        // Create line items with EXPLICIT number conversion
+        const lineItems = [];
         
-        // Create line items for Stripe
-        const lineItems = cart.map(item => {
-            const priceInCents = Math.round(parseFloat(item.price) * 100);
+        for (let item of cart) {
+            const price = parseFloat(item.price);
+            const quantity = parseInt(item.quantity);
             
-            if (isNaN(priceInCents) || priceInCents <= 0) {
-                throw new Error(`Invalid price for ${item.name}: ${item.price}`);
+            console.log('Processing item:', {
+                name: item.name,
+                originalPrice: item.price,
+                parsedPrice: price,
+                quantity: quantity,
+                isNaN: isNaN(price)
+            });
+            
+            if (isNaN(price) || price <= 0) {
+                alert(`Invalid price for ${item.name}. Please remove it and re-add from the products page.`);
+                return;
             }
             
-            return {
+            const priceInCents = Math.round(price * 100);
+            
+            console.log('Price in cents:', priceInCents);
+            
+            if (isNaN(priceInCents) || priceInCents <= 0) {
+                alert(`Error calculating price for ${item.name}. Please remove it and try again.`);
+                return;
+            }
+            
+            lineItems.push({
                 price_data: {
                     currency: 'usd',
                     product_data: {
@@ -240,13 +265,13 @@ async function checkoutCart() {
                     },
                     unit_amount: priceInCents,
                 },
-                quantity: parseInt(item.quantity) || 1,
-            };
-        });
+                quantity: quantity,
+            });
+        }
         
-        console.log('Sending to checkout:', lineItems);
+        console.log('Final line items:', JSON.stringify(lineItems, null, 2));
         
-        // Call Netlify function to create checkout session
+        // Call Netlify function
         const response = await fetch('/.netlify/functions/create-checkout', {
             method: 'POST',
             headers: {
@@ -255,24 +280,34 @@ async function checkoutCart() {
             body: JSON.stringify({ cart: lineItems }),
         });
         
+        console.log('Response status:', response.status);
+        
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to create checkout session');
+            const errorText = await response.text();
+            console.error('Server error:', errorText);
+            throw new Error(errorText || 'Failed to create checkout session');
         }
         
-        const { sessionId } = await response.json();
+        const data = await response.json();
+        console.log('Response data:', data);
         
-        // Redirect to Stripe Checkout
+        const { sessionId } = data;
+        
+        if (!sessionId) {
+            throw new Error('No session ID returned from server');
+        }
+        
+        // Redirect to Stripe
         const { error } = await window.stripe.redirectToCheckout({ sessionId });
         
         if (error) {
-            console.error('Checkout error:', error);
-            alert('Error processing checkout: ' + error.message);
+            console.error('Stripe redirect error:', error);
+            alert('Error: ' + error.message);
         }
         
     } catch (error) {
         console.error('Checkout error:', error);
-        alert('Error processing checkout: ' + error.message + '. Please try again.');
+        alert('Checkout error: ' + error.message);
     }
 }
 
