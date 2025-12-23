@@ -30,9 +30,17 @@ function updateCartCount() {
     });
 }
 
-// Add item to cart - GLOBAL FUNCTION
+// Add item to cart - GLOBAL FUNCTION with price validation
 window.addToCart = function(productId, productName, productPrice, productImage, productDescription) {
     let cart = getCart();
+    
+    // Validate price
+    const price = parseFloat(productPrice);
+    if (isNaN(price) || price <= 0) {
+        console.error('Invalid price for product:', productName, productPrice);
+        alert('Error: Invalid product price. Please refresh the page and try again.');
+        return;
+    }
     
     const existing = cart.find(item => item.id === productId && !item.variant);
     if (existing) {
@@ -41,7 +49,7 @@ window.addToCart = function(productId, productName, productPrice, productImage, 
         cart.push({
             id: productId,
             name: productName,
-            price: productPrice,
+            price: price, // Store as number
             image: productImage,
             description: productDescription || '',
             quantity: 1
@@ -196,7 +204,7 @@ function displayCart() {
     `;
 }
 
-// Checkout function - FIXED
+// Checkout function - FIXED with price validation
 async function checkoutCart() {
     const cart = getCart();
     
@@ -206,19 +214,37 @@ async function checkoutCart() {
     }
     
     try {
+        // Validate cart items have valid prices
+        const invalidItems = cart.filter(item => !item.price || isNaN(item.price) || item.price <= 0);
+        if (invalidItems.length > 0) {
+            console.error('Invalid cart items:', invalidItems);
+            alert('Some items in your cart have invalid prices. Please remove them and try again.');
+            return;
+        }
+        
         // Create line items for Stripe
-        const lineItems = cart.map(item => ({
-            price_data: {
-                currency: 'usd',
-                product_data: {
-                    name: item.name,
-                    description: item.description || '',
-                    images: item.image ? [item.image] : [],
+        const lineItems = cart.map(item => {
+            const priceInCents = Math.round(parseFloat(item.price) * 100);
+            
+            if (isNaN(priceInCents) || priceInCents <= 0) {
+                throw new Error(`Invalid price for ${item.name}: ${item.price}`);
+            }
+            
+            return {
+                price_data: {
+                    currency: 'usd',
+                    product_data: {
+                        name: item.name,
+                        description: item.description || '',
+                        images: item.image ? [item.image] : [],
+                    },
+                    unit_amount: priceInCents,
                 },
-                unit_amount: Math.round(item.price * 100), // Convert to cents
-            },
-            quantity: item.quantity,
-        }));
+                quantity: parseInt(item.quantity) || 1,
+            };
+        });
+        
+        console.log('Sending to checkout:', lineItems);
         
         // Call Netlify function to create checkout session
         const response = await fetch('/.netlify/functions/create-checkout', {

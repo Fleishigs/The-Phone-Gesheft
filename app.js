@@ -29,9 +29,17 @@ function updateCartCount() {
     });
 }
 
-// Add item to cart - GLOBAL FUNCTION
+// Add item to cart - GLOBAL FUNCTION with price validation
 window.addToCart = function(productId, productName, productPrice, productImage, productDescription) {
     let cart = getCart();
+    
+    // Validate price
+    const price = parseFloat(productPrice);
+    if (isNaN(price) || price <= 0) {
+        console.error('Invalid price for product:', productName, productPrice);
+        alert('Error: Invalid product price. Please refresh the page and try again.');
+        return;
+    }
     
     const existing = cart.find(item => item.id === productId && !item.variant);
     if (existing) {
@@ -40,7 +48,7 @@ window.addToCart = function(productId, productName, productPrice, productImage, 
         cart.push({
             id: productId,
             name: productName,
-            price: productPrice,
+            price: price, // Store as number
             image: productImage,
             description: productDescription || '',
             quantity: 1
