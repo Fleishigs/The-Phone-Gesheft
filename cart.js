@@ -1,5 +1,9 @@
-// Cart Management System
+// Cart Management System - COMPLETE STANDALONE
 // Uses window.supabase and window.stripe from config.js
+
+// ============================================
+// CART UTILITIES - Used across all pages
+// ============================================
 
 // Get cart from localStorage
 function getCart() {
@@ -45,14 +49,11 @@ window.addToCart = function(productId, productName, productPrice, productImage, 
     }
     
     saveCart(cart);
-    showNotification(`${productName} added to cart!`);
-};
-
-// Show notification - GLOBAL FUNCTION
-window.showNotification = function(message) {
+    
+    // Show notification
     const notification = document.createElement('div');
     notification.style.cssText = 'position: fixed; top: 100px; right: 20px; background: #10B981; color: white; padding: 1rem 2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 10000; animation: slideIn 0.3s ease;';
-    notification.textContent = message;
+    notification.textContent = `${productName} added to cart!`;
     document.body.appendChild(notification);
     
     setTimeout(() => {
@@ -61,7 +62,7 @@ window.showNotification = function(message) {
     }, 2000);
 };
 
-// Add animation styles if not present
+// Add animation styles
 if (!document.getElementById('cart-animations')) {
     const style = document.createElement('style');
     style.id = 'cart-animations';
@@ -77,6 +78,10 @@ if (!document.getElementById('cart-animations')) {
     `;
     document.head.appendChild(style);
 }
+
+// ============================================
+// CART PAGE SPECIFIC FUNCTIONS
+// ============================================
 
 // Format price for display
 function formatPrice(price) {
@@ -247,6 +252,9 @@ async function checkoutCart() {
 
 // Initialize cart on page load
 document.addEventListener('DOMContentLoaded', () => {
+    // Update cart count immediately
+    updateCartCount();
+    
     // Wait for config.js to initialize
     const initInterval = setInterval(() => {
         if (window.supabase && window.stripe) {

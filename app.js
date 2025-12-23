@@ -1,5 +1,86 @@
-// Products page functionality
+// Products page functionality - COMPLETE STANDALONE
 // Uses window.supabase and window.stripe from config.js
+
+// ============================================
+// CART UTILITIES - Integrated here
+// ============================================
+
+// Get cart from localStorage
+function getCart() {
+    const cart = localStorage.getItem('cart');
+    return cart ? JSON.parse(cart) : [];
+}
+
+// Save cart to localStorage
+function saveCart(cart) {
+    localStorage.setItem('cart', JSON.stringify(cart));
+    updateCartCount();
+}
+
+// Update cart count in navigation
+function updateCartCount() {
+    const cart = getCart();
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    
+    const cartCountElements = document.querySelectorAll('#cart-count, .cart-count');
+    cartCountElements.forEach(el => {
+        el.textContent = totalItems;
+        el.style.display = totalItems > 0 ? 'inline-block' : 'none';
+    });
+}
+
+// Add item to cart - GLOBAL FUNCTION
+window.addToCart = function(productId, productName, productPrice, productImage, productDescription) {
+    let cart = getCart();
+    
+    const existing = cart.find(item => item.id === productId && !item.variant);
+    if (existing) {
+        existing.quantity += 1;
+    } else {
+        cart.push({
+            id: productId,
+            name: productName,
+            price: productPrice,
+            image: productImage,
+            description: productDescription || '',
+            quantity: 1
+        });
+    }
+    
+    saveCart(cart);
+    
+    // Show notification
+    const notification = document.createElement('div');
+    notification.style.cssText = 'position: fixed; top: 100px; right: 20px; background: #10B981; color: white; padding: 1rem 2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 10000; animation: slideIn 0.3s ease;';
+    notification.textContent = `${productName} added to cart!`;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 2000);
+};
+
+// Add animation styles
+if (!document.getElementById('cart-animations')) {
+    const style = document.createElement('style');
+    style.id = 'cart-animations';
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(400px); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// ============================================
+// PRODUCTS PAGE FUNCTIONS
+// ============================================
 
 // Load products from Supabase - FIXED: Filter deleted and out of stock
 async function loadProducts() {
@@ -33,17 +114,22 @@ async function loadProducts() {
         displayProducts(inStockProducts);
     } catch (error) {
         console.error('Error loading products:', error);
-        document.getElementById('products-grid').innerHTML = `
-            <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
-                <p style="color: #EF4444; font-weight: 600;">Error loading products. Please try again later.</p>
-            </div>
-        `;
+        const grid = document.getElementById('products-grid');
+        if (grid) {
+            grid.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                    <p style="color: #EF4444; font-weight: 600;">Error loading products. Please try again later.</p>
+                </div>
+            `;
+        }
     }
 }
 
 // Display products in grid
 function displayProducts(products) {
     const grid = document.getElementById('products-grid');
+    
+    if (!grid) return;
     
     if (products.length === 0) {
         grid.innerHTML = `
@@ -81,9 +167,7 @@ function escapeQuotes(str) {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     // Update cart count immediately
-    if (typeof updateCartCount === 'function') {
-        updateCartCount();
-    }
+    updateCartCount();
     
     // Wait for config.js to initialize Supabase
     const initInterval = setInterval(() => {
